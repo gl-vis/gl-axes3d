@@ -1,0 +1,51 @@
+{
+  "name": "gl-axes",
+  "version": "0.0.0",
+  "description": "Renders axes for WebGL plots",
+  "main": "axes.js",
+  "directories": {
+    "example": "example"
+  },
+  "dependencies": {
+    "gl-matrix": "^2.0.0",
+    "gl-buffer": "~2.0.3",
+    "gl-vao": "^1.1.1",
+    "glslify": "^1.2.0",
+    "boxpack": "^0.1.0",
+    "gl-texture2d": "^0.1.11",
+    "gl-state": "^0.0.0"
+  },
+  "devDependencies": {
+    "game-shell-orbit-camera": "^0.0.0",
+    "gl-now": "^1.0.0",
+    "gl-simplicial-complex": "^1.0.0",
+    "isosurface": "^0.1.0",
+    "beefy": "^1.1.0",
+    "browserify": "^2.36.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "beefy --open --live example/example.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mikolalysenko/gl-axes.git"
+  },
+  "browserify": {
+    "transform": [
+      "glslify"
+    ]
+  },
+  "keywords": [
+    "webgl",
+    "axes",
+    "plot",
+    "boxes"
+  ],
+  "author": "Mikola Lysenko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mikolalysenko/gl-axes/issues"
+  },
+  "homepage": "https://github.com/mikolalysenko/gl-axes"
+}
