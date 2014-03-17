@@ -10,6 +10,8 @@ var createAxes = require("../axes.js")
 //Bounds on function to plot
 var extents = [[-5,-5,-5], [5,5,5]]
 
+camera.lookAt([-15,20,-15], [0,0,0], [0, 1, 0])
+
 //Plot level set of f = 0
 function f(x,y,z) {
   return x*x + y*y + z*z - 2.0

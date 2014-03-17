@@ -17,5 +17,5 @@ void main() {
   vec3 lines = 2./(1. + exp(20.0*(cutoff - weight)));
   lines -= dimension * lines;
   float intensity = lines.x + lines.y + lines.z;
-  gl_FragColor = vec4(0,0,0,intensity+0.2);
+  gl_FragColor = vec4(0.25,0.25,0.25,intensity+0.3);
 }
