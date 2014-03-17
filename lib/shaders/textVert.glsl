@@ -12,9 +12,7 @@ varying vec2 fragTexCoord;
 void main() {
   vec4 worldPosition = model * vec4(t * axis + offset, 1);
   vec4 viewPosition = view * worldPosition;
-  vec4 clipPosition = projection * view * worldPosition;
-
+  gl_Position = projection * (viewPosition + 0.25 * vec4(screenOffset, 0, 1));
   fragTexId = textureId;
   fragTexCoord = texCoord;
-  gl_Position = clipPosition;
 }

@@ -13,7 +13,8 @@
     "glslify": "^1.2.0",
     "boxpack": "^0.1.0",
     "gl-texture2d": "^0.1.11",
-    "gl-state": "^0.0.0"
+    "gl-state": "^0.0.0",
+    "bit-twiddle": "0.0.2"
   },
   "devDependencies": {
     "game-shell-orbit-camera": "^0.0.0",
