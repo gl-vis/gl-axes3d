@@ -2,7 +2,7 @@ gl-axes
 =======
 Draws axes for 3D scenes:
 
-<img src=example/axes.png>
+<img src=https://raw.github.com/mikolalysenko/gl-axes/master/example/axes.png>
 
 # Example
 
