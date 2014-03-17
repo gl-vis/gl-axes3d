@@ -86,7 +86,7 @@ npm install gl-axes
 Creates an axes object.
 
 * `gl` is a WebGL context
-* `params` is an object with the same behavior as [`axes.update`]
+* `params` is an object with the same behavior as [`axes.update`](#axesupdateparams)
 
 **Returns** A new `glAxes` object for drawing the 
 

@@ -296,6 +296,7 @@ proto.draw = function(params) {
 proto.dispose = function() {
   this._textSprites.dispose()
   this._box.dispose()
+  this._lines.dispose()
 }
 
 function createAxes(gl, options) {
