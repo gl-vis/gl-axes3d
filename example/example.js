@@ -45,5 +45,5 @@ shell.on("gl-render", function() {
   
   //Draw objects
   axes.draw(cameraParameters)
-  //mesh.draw(cameraParameters)
+  mesh.draw(cameraParameters)
 })
