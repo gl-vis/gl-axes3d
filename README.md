@@ -70,7 +70,7 @@ shell.on("gl-render", function() {
 })
 ```
 
-You can play with this demo yourself on requirebin.
+[You can play with this demo yourself on requirebin.](http://requirebin.com/?gist=mikolalysenko/9610686)
 
 # Install
 
