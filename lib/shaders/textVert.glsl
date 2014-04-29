@@ -1,22 +1,14 @@
-attribute float t;
-attribute float textureId;
-attribute vec2 texCoord;
-attribute vec2 screenOffset;
+attribute vec3 position;
 
 uniform mat4 model, view, projection;
 uniform vec3 offset, axis;
 uniform float textScale;
 
-varying float fragTexId;
-varying vec2 fragTexCoord;
-
 void main() {
+  float t = position.z;
   vec4 worldPosition = model * vec4(t * axis + offset, 1);
-  vec4 viewPosition = view * worldPosition;
+  vec4 viewPosition = view * worldPosition + textScale * vec4(position.xy, 0, 0);
   vec4 clipPosition = projection * viewPosition;
   clipPosition /= clipPosition.w;
-  clipPosition += textScale * vec4(screenOffset, 0, 0);
   gl_Position = clipPosition;
-  fragTexId = textureId;
-  fragTexCoord = texCoord;
 }
