@@ -27,7 +27,7 @@ function Axes(gl) {
   this.tickWidth = 0.01
   this.showTicks = [true, true, true]
   this.font = "sans-serif"
-  this.fontSize = 32
+  this.fontSize = 64
   this._textSprites = null
   this._box = null
   this._lines = null
@@ -241,7 +241,7 @@ proto.draw = function(params) {
         minor[j] = 0.125 * this.tickSpacing[j]
       }
     }
-    c[i] = 0.5 * (bounds[0][i] + bounds[1][i])
+    c[i] = 0
     minor[i] = 0
     this._lines.draw(i, c, minor)
   }
@@ -284,7 +284,8 @@ proto.draw = function(params) {
         q[j] = bounds[0][j] - 1.5 * this.tickSpacing[j]
       }
     }
-    q[i] = c[i] = 0.5 * (bounds[0][i] + bounds[1][i])
+    c[i] = 0
+    q[i] = 0.5 * (bounds[0][i] + bounds[1][i])
     this._textSprites.drawAxis(i, c)
     this._textSprites.drawLabel(i, q)
   }
@@ -296,6 +297,7 @@ proto.draw = function(params) {
 proto.dispose = function() {
   this._textSprites.dispose()
   this._box.dispose()
+  this._lines.dispose()
 }
 
 function createAxes(gl, options) {
