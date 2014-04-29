@@ -24,10 +24,9 @@ function Axes(gl) {
   this.extents = [[-10, -10, -10], [10,10,10]]
   this.labels = ["x", "y", "z"]
   this.tickSpacing = [0.5, 0.5, 0.5]
-  this.tickWidth = 0.01
+  this.tickWidth = 0.0001
   this.showTicks = [true, true, true]
   this.font = "sans-serif"
-  this.fontSize = 64
   this._textSprites = null
   this._box = null
   this._lines = null
@@ -75,9 +74,6 @@ proto.update = function(options) {
   if("font" in options) {
     this.font = options.font
   }
-  if("fontSize" in options) {
-    this.fontSize = options.fontSize
-  }
   if(this._textSprites) {
     this._textSprites.dispose()
   }
@@ -86,7 +82,6 @@ proto.update = function(options) {
     this.extents,
     this.tickSpacing,
     this.font,
-    this.fontSize,
     4,
     this.labels)
   if(!this._box) {
