@@ -27,7 +27,7 @@ function Axes(gl) {
   this.tickWidth = 0.01
   this.showTicks = [true, true, true]
   this.font = "sans-serif"
-  this.fontSize = 32
+  this.fontSize = 64
   this._textSprites = null
   this._box = null
   this._lines = null
