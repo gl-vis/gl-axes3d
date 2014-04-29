@@ -1,6 +1,6 @@
 {
   "name": "gl-axes",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "description": "Renders axes for WebGL plots",
   "main": "axes.js",
   "directories": {
@@ -8,13 +8,12 @@
   },
   "dependencies": {
     "gl-matrix": "^2.0.0",
-    "gl-buffer": "~2.0.3",
+    "gl-buffer": "^2.0.3",
     "gl-vao": "^1.1.1",
     "glslify": "^1.2.0",
-    "boxpack": "^0.1.0",
-    "gl-texture2d": "^0.1.11",
     "gl-state": "^0.0.0",
-    "bit-twiddle": "0.0.2"
+    "bit-twiddle": "^1.0.0",
+    "vectorize-text": "^2.0.0"
   },
   "devDependencies": {
     "game-shell-orbit-camera": "^0.0.0",
