@@ -22,7 +22,7 @@ var createAxes = require("gl-axes")
 var mat4 = require("gl-matrix").mat4
 
 //Bounds on function to plot
-var extents = [[-5,-5,-5], [5,5,5]]
+var bounds = [[-5,-5,-5], [5,5,5]]
 
 //Plot level set of f = 0
 function f(x,y,z) {
@@ -39,11 +39,11 @@ shell.on("gl-init", function() {
   camera.lookAt(extents[1], [0,0,0], [0, 1, 0])
 
   //Create mesh
-  mesh = createMesh(gl, polygonize([64, 64, 64], f, extents))
+  mesh = createMesh(gl, polygonize([64, 64, 64], f, bounds))
 
   //Create axes object
   axes = createAxes(gl, {
-    extents: extents
+    bounds: bounds
   })
 })
 

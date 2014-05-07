@@ -21,7 +21,7 @@ var scratch = [new Float32Array(16), new Float32Array(16)]
 
 function Axes(gl) {
   this.gl = gl
-  this.extents = [[-10, -10, -10], [10,10,10]]
+  this.bounds = [[-10, -10, -10], [10,10,10]]
   this.labels = ["x", "y", "z"]
   this.tickSpacing = [0.5, 0.5, 0.5]
   this.tickWidth = 0.0001
@@ -50,8 +50,8 @@ var proto = Axes.prototype
 
 proto.update = function(options) {
   options = options || {}
-  if("extents" in options) {
-    this.extents = options.extents
+  if("bounds" in options) {
+    this.bounds = options.bounds
   }
   if("labels" in options) {
     this.labels = options.labels
@@ -79,7 +79,7 @@ proto.update = function(options) {
   }
   this._textSprites = createTextSprites(
     this.gl, 
-    this.extents,
+    this.bounds,
     this.tickSpacing,
     this.font,
     4,
@@ -90,7 +90,7 @@ proto.update = function(options) {
   if(this._lines) {
     this._lines.dispose()
   }
-  this._lines = createLines(this.gl, this.extents, this.tickSpacing)
+  this._lines = createLines(this.gl, this.bounds, this.tickSpacing)
 }
 
 proto.draw = function(params) {
@@ -101,7 +101,7 @@ proto.draw = function(params) {
   var projection = params.projection || identity
   var mvp = scratch[0]
   var inv_mvp = scratch[1]
-  var bounds = this.extents
+  var bounds = this.bounds
 
   //Concatenate matrices
   mat4.multiply(mvp, view, model)
