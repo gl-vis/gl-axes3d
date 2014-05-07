@@ -104,13 +104,14 @@ All camera matrices are in 4x4 homogeneous coordinates and encoded as length 16 
 ### `axes.update(params)`
 Updates the parameters of the axes object using the properties in `params`. These can be as follows:
 
-* `extents` the bounding box for the axes object, represented as a pair of 3D arrays encoding the lower and upper bounds for each component.  Default is `[[-10,-10,-10],[10,10,10]]`
+* `bounds` the bounding box for the axes object, represented as a pair of 3D arrays encoding the lower and upper bounds for each component.  Default is `[[-10,-10,-10],[10,10,10]]`
 * `labels` a 3D array encoding the labels for each of the 3 axes.  Default is `['x', 'y', 'z']`
 * `tickSpacing` either a number or 3d array representing the spacing between the tick lines for each axis. Default is `0.5`
-* `showTicks` a vector of boolean values determining which of the 3 axes tick lines to show.  Default is `[true,true,true]`
-* `tickWidth` the width of a tick line in the underlying box
+* `showAxes` a vector of boolean values determining which of the 3 axes tick lines to show.  Default is `[true,true,true]`
+* `tickWidth` the width of a tick line in the underlying box in pixels
 * `font` the font family to use for rendering text.  Default `'sans-serif'`
-* `fontSize` the resolution to render the text at.  Default `32`
+* `axesColors` an array of colors for each axis, or else a single 3D array encoding all axes colors.  Default is `[[0,0,0], [0,0,0], [0,0,0]]`
+* `gridColor` the color of the grid lines in the background.  Default is `[0,0,0]`
 
 ### `axes.dispose()`
 Releases all resources associated with this axes object.
