@@ -2,8 +2,7 @@
 
 module.exports = createAxes
 
-var createTextSprites = require("./lib/textSprites.js")
-var createBox = require("./lib/box.js")
+var createText = require("./lib/text.js")
 var createLines = require("./lib/lines.js")
 var bits = require("bit-twiddle")
 var createStateStack = require("gl-state")
@@ -21,14 +20,13 @@ var scratch = [new Float32Array(16), new Float32Array(16)]
 
 function Axes(gl) {
   this.gl = gl
-  this.extents = [[-10, -10, -10], [10,10,10]]
+  this.bounds = [[-10, -10, -10], [10,10,10]]
   this.labels = ["x", "y", "z"]
   this.tickSpacing = [0.5, 0.5, 0.5]
-  this.tickWidth = 0.0001
+  this.tickWidth = 1
   this.showTicks = [true, true, true]
   this.font = "sans-serif"
-  this._textSprites = null
-  this._box = null
+  this._text = null
   this._lines = null
   this._state = createStateStack(gl, [
       gl.BLEND,
@@ -44,53 +42,75 @@ function Axes(gl) {
       gl.DEPTH_TEST,
       gl.LINE_WIDTH
     ])
+  this.axesColors = [[0,0,0], [0,0,0], [0,0,0]]
+  this.gridColor = [0,0,0]
 }
 
 var proto = Axes.prototype
 
 proto.update = function(options) {
   options = options || {}
-  if("extents" in options) {
-    this.extents = options.extents
+  var lineUpdate = false
+  var textUpdate = false
+  if("bounds" in options) {
+    this.bounds = options.bounds
+    lineUpdate = textUpdate = true
   }
   if("labels" in options) {
     this.labels = options.labels
+    textUpdate = true
   }
   if("tickSpacing" in options) {
     if(typeof options.tickSpacing === "number") {
       this.tickSpacing = [options.tickSpacing, options.tickSpacing, options.tickSpacing]
     }
     this.tickSpacing = options.tickSpacing
+    lineUpdate = textUpdate = true
   }
-  if("showTicks" in options) {
-    if(typeof options.showTicks === "boolean") {
-      this.showTicks = [options.showTicks, options.showTicks, options.showTicks]
+  if("showAxes" in options) {
+    if(typeof options.showAxes === "boolean") {
+      this.showAxes = [options.showAxes, options.showAxes, options.showAxes]
+    } else {
+      this.showAxes = options.showAxes
     }
-    this.showTicks = options.showTicks
+  }
+  if("axesColors" in options) {
+    var colors = options.axesColors
+    if(Array.isArray(colors[0])) {
+      this.axesColors = colors
+    } else {
+      this.axesColors = [colors.slice(), colors.slice(), colors.slice()]
+    }
+  }
+  if("gridColor" in options) {
+    this.gridColor = options.gridColor
   }
   if("tickWidth" in options) {
     this.tickWidth = options.tickWidth
   }
   if("font" in options) {
     this.font = options.font
+    textUpdate = true
   }
-  if(this._textSprites) {
-    this._textSprites.dispose()
+  if(textUpdate && this._text) {
+    this._text.dispose()
+    this._text = null
   }
-  this._textSprites = createTextSprites(
-    this.gl, 
-    this.extents,
-    this.tickSpacing,
-    this.font,
-    4,
-    this.labels)
-  if(!this._box) {
-    this._box = createBox(this.gl)
+  if(!this._text) {
+    this._text = createText(
+      this.gl, 
+      this.bounds,
+      this.tickSpacing,
+      this.font,
+      4,
+      this.labels)
   }
-  if(this._lines) {
+  if(lineUpdate && this._lines) {
     this._lines.dispose()
   }
-  this._lines = createLines(this.gl, this.extents, this.tickSpacing)
+  if(!this._lines) {
+    this._lines = createLines(this.gl, this.bounds, this.tickSpacing)
+  }
 }
 
 proto.draw = function(params) {
@@ -101,7 +121,7 @@ proto.draw = function(params) {
   var projection = params.projection || identity
   var mvp = scratch[0]
   var inv_mvp = scratch[1]
-  var bounds = this.extents
+  var bounds = this.bounds
 
   //Concatenate matrices
   mat4.multiply(mvp, view, model)
@@ -109,10 +129,11 @@ proto.draw = function(params) {
   mat4.invert(inv_mvp, mvp)
 
   //Determine which axes to draw (this is tricky)
+
+  //First project cube vertices
   var cubeVerts = []
   var x = [0,0,0,1]
   var y = [0,0,0,0]
-  var bottom = 0
   for(var i=0; i<2; ++i) {
     x[2] = bounds[i][2]
     for(var j=0; j<2; ++j) {
@@ -120,80 +141,78 @@ proto.draw = function(params) {
       for(var k=0; k<2; ++k) {
         x[0] = bounds[k][0]
         vec4.transformMat4(y, x, mvp)
-        var cv = [y[0]/y[3], y[1]/y[3], y[2]/Math.abs(y[3])]
+        var cv = [y[0]/y[3], y[1]/y[3], y[2]]
         cubeVerts.push(cv)
-        if(cv[1] < cubeVerts[bottom][1]) {
-          bottom = cubeVerts.length-1
-        }
       }
     }
   }
-  var closest = bottom^1
+
+  //Find closest vertex
+  var closest = 0
   for(var i=0; i<8; ++i) {
-    if(i === bottom) {
-      continue
-    }
     if(cubeVerts[i][2] < cubeVerts[closest][2]) {
       closest = i
     }
   }
-  var left = bottom ^ 1
-  var right = bottom ^ 2
-  if(left === closest) {
-    left = bottom ^ 4
+  var farthest = 7 ^ closest
+
+  //Find lowest vertex != closest
+  var bottom = -1
+  for(var i=0; i<8; ++i) {
+    if(i === closest || i === farthest) {
+      continue
+    }
+    if(bottom < 0) {
+      bottom = i
+    } else if(cubeVerts[bottom][1] > cubeVerts[i][1]) {
+      bottom = i
+    }
   }
-  if(right === closest) {
-    right = bottom ^ 4
-  }
+  //Find left/right neighbors of bottom vertex
+  var left = -1
   for(var i=0; i<3; ++i) {
     var idx = bottom ^ (1<<i)
-    if(idx === closest) {
+    if(idx === closest || idx === farthest) {
       continue
+    }
+    if(left < 0) {
+      left = idx
     }
     var v = cubeVerts[idx]
     if(v[0] < cubeVerts[left][0]) {
       left = idx
-      right = bottom ^ (1<<((i+1)%3))
-      if(right === closest) {
-        right = bottom ^ (1<<((i+2)%3))
-      }
     }
   }
+  var right = -1
   for(var i=0; i<3; ++i) {
     var idx = bottom ^ (1<<i)
-    if(idx === left || idx === closest) {
+    if(idx === closest || idx === farthest || idx === left) {
       continue
+    }
+    if(right < 0) {
+      right = idx
     }
     var v = cubeVerts[idx]
     if(v[0] > cubeVerts[right][0]) {
       right = idx
     }
   }
-  
+
   //Determine edge axis coordinates
   var cubeEdges = [0,0,0]
   cubeEdges[bits.log2(left^bottom)] = bottom&left
   cubeEdges[bits.log2(bottom^right)] = bottom&right
   var top = right ^ 7
-  if(top === closest) {
+  if(top === closest || top === farthest) {
     top = left ^ 7
     cubeEdges[bits.log2(right^top)] = top&right
   } else {
     cubeEdges[bits.log2(left^top)] = top&left
   }
-  
+
   //Determine visible vaces
   var axis = [1,1,1]
-  var cutCorner = left ^ top ^ bottom
-  for(var i=0; i<8; ++i) {
-    if(i === left || i == bottom || i === top || i == right) {
-      continue
-    }
-    var v = cubeVerts[i]
-    if(v[2] < cubeVerts[cutCorner][2]) {
-      cutCorner = i
-    }
-  }
+  var cutCorner = closest
   for(var d=0; d<3; ++d) {
     if(cutCorner & (1<<d)) {
       axis[d] = -1
@@ -212,6 +231,7 @@ proto.draw = function(params) {
   gl.enable(gl.DEPTH_TEST)
   gl.depthMask(true)
   gl.disable(gl.BLEND)
+  gl.lineWidth(this.tickWidth)
 
   //Draw axes lines
   gl.lineWidth(1)
@@ -221,6 +241,14 @@ proto.draw = function(params) {
     projection,
     this)
   for(var i=0; i<3; ++i) {
+    var x = [0,0,0]
+    if(axis[i] > 0) {
+      x[i] = bounds[1][i]
+    } else {
+      x[i] = bounds[0][i]
+    }
+    this._lines.drawBox(i, x, this.gridColor)
+
     if(!this.showTicks[i]) {
       continue
     }
@@ -238,25 +266,11 @@ proto.draw = function(params) {
     }
     c[i] = 0
     minor[i] = 0
-    this._lines.draw(i, c, minor)
+    this._lines.drawAxis(i, c, minor, this.axesColors[i])
   }
 
-  //Turn on blending
-  gl.enable(gl.BLEND)
-  gl.blendEquation(gl.FUNC_ADD)
-  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-  
-  //Draw outer box
-  this._box.draw(
-    model,
-    view,
-    projection,
-    axis,
-    this)
-
   //Draw text sprites
-  gl.depthMask(false)
-  this._textSprites.bind(
+  this._text.bind(
     model,
     view,
     projection,
@@ -281,8 +295,8 @@ proto.draw = function(params) {
     }
     c[i] = 0
     q[i] = 0.5 * (bounds[0][i] + bounds[1][i])
-    this._textSprites.drawAxis(i, c)
-    this._textSprites.drawLabel(i, q)
+    this._text.drawAxis(i, c, this.axesColors[i])
+    this._text.drawLabel(i, q, this.axesColors[i])
   }
 
   //Restore context state
@@ -290,8 +304,7 @@ proto.draw = function(params) {
 }
 
 proto.dispose = function() {
-  this._textSprites.dispose()
-  this._box.dispose()
+  this._text.dispose()
   this._lines.dispose()
 }
 
