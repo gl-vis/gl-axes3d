@@ -107,6 +107,7 @@ proto.update = function(options) {
   }
   if(lineUpdate && this._lines) {
     this._lines.dispose()
+    this._lines = null
   }
   if(!this._lines) {
     this._lines = createLines(this.gl, this.bounds, this.tickSpacing)

@@ -26,6 +26,10 @@ shell.on("gl-init", function() {
   axes = createAxes(gl, {
     bounds: bounds
   })
+
+  axes.dispose()
+
+  axes = createAxes(gl)
 })
 
 shell.on("gl-render", function() {
