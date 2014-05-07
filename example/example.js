@@ -1,6 +1,6 @@
 "use strict"
 
-var shell = require("gl-now")({ clearColor: [0,0,0,0] })
+var shell = require("gl-now")({ clearColor: [0,0,0,0], tickRate: 5 })
 var createMesh = require("gl-simplicial-complex")
 var polygonize = require("isosurface").surfaceNets
 var camera = require("game-shell-orbit-camera")(shell)
@@ -26,10 +26,6 @@ shell.on("gl-init", function() {
   axes = createAxes(gl, {
     bounds: bounds
   })
-
-  axes.dispose()
-
-  axes = createAxes(gl)
 })
 
 shell.on("gl-render", function() {
