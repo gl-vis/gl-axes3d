@@ -11,7 +11,7 @@
     "gl-buffer": "^2.0.3",
     "gl-vao": "^1.1.1",
     "glslify": "^1.2.0",
-    "gl-state": "^0.0.0",
+    "gl-state": "^1.0.0",
     "bit-twiddle": "^1.0.0",
     "vectorize-text": "^2.0.0"
   },
