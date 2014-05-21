@@ -36,7 +36,7 @@ shell.on("gl-init", function() {
   var gl = shell.gl
 
   //Set up camera
-  camera.lookAt(extents[1], [0,0,0], [0, 1, 0])
+  camera.lookAt(bounds[1], [0,0,0], [0, 1, 0])
 
   //Create mesh
   mesh = createMesh(gl, polygonize([64, 64, 64], f, bounds))
@@ -112,6 +112,7 @@ Updates the parameters of the axes object using the properties in `params`. Thes
 * `font` the font family to use for rendering text.  Default `'sans-serif'`
 * `axesColors` an array of colors for each axis, or else a single 3D array encoding all axes colors.  Default is `[[0,0,0], [0,0,0], [0,0,0]]`
 * `gridColor` the color of the grid lines in the background.  Default is `[0,0,0]`
+* `ticks` Alternatively, you can specify custom tick labels for each axis by passing in an array of 3 arrays of tick markings.  Each tick marking array is an array of objects with the properties `x` and `text` which denote the position on the tick axis and the text of the tick label respectively.
 
 ### `axes.dispose()`
 Releases all resources associated with this axes object.

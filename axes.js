@@ -28,6 +28,7 @@ function Axes(gl) {
   this.font = "sans-serif"
   this._text = null
   this._lines = null
+  this._customTicks = null
   this._state = createStateStack(gl, [
       gl.BLEND,
       gl.BLEND_DST_ALPHA,
@@ -48,13 +49,40 @@ function Axes(gl) {
 
 var proto = Axes.prototype
 
+function defaultTicks(bounds, tickSpacing) {
+  var array = []
+  for(var d=0; d<3; ++d) {
+    var ticks = []
+    var m = 0.5*(bounds[0][d]+bounds[1][d])
+    for(var t=0; t<=bounds[1][d]; t+=tickSpacing[d]) {
+      ticks.push({x: t, text: ""+t})
+    }
+    for(var t=-tickSpacing[d]; t>=bounds[0][d]; t-=tickSpacing[d]) {
+      ticks.push({x: t, text: ""+t})
+    }
+    array.push(ticks)
+  }
+  return array
+}
+
 proto.update = function(options) {
   options = options || {}
   var lineUpdate = false
   var textUpdate = false
+  var customTicks = this._customTicks
+  var ticksChanged = false
+  if("ticks" in options) {
+    ticksChanged = true
+    customTicks = options.ticks
+    lineUpdate = true
+  }
   if("bounds" in options) {
     this.bounds = options.bounds
-    lineUpdate = textUpdate = true
+    lineUpdate = true
+    textUpdate = true
+    if(!customTicks) {
+      ticksChanged = true
+    }
   }
   if("labels" in options) {
     this.labels = options.labels
@@ -65,7 +93,9 @@ proto.update = function(options) {
       this.tickSpacing = [options.tickSpacing, options.tickSpacing, options.tickSpacing]
     }
     this.tickSpacing = options.tickSpacing
-    lineUpdate = textUpdate = true
+    if(!customTicks) {
+      ticksChanged = true
+    }
   }
   if("showAxes" in options) {
     if(typeof options.showAxes === "boolean") {
@@ -92,6 +122,22 @@ proto.update = function(options) {
     this.font = options.font
     textUpdate = true
   }
+  var ticks = this._customTicks
+  if(ticksChanged) {
+    textUpdate = true
+    lineUpdate = true
+    if(options.ticks) {
+      ticks = options.ticks
+    } else {
+      ticks = defaultTicks(this.bounds, this.tickSpacing)
+    }
+    for(var i=0; i<3; ++i) {
+      ticks[i].sort(function(a,b) {
+        return a.x-b.x
+      })
+    }
+    this._customTicks = ticks
+  }
   if(textUpdate && this._text) {
     this._text.dispose()
     this._text = null
@@ -100,9 +146,8 @@ proto.update = function(options) {
     this._text = createText(
       this.gl, 
       this.bounds,
-      this.tickSpacing,
+      ticks,
       this.font,
-      4,
       this.labels)
   }
   if(lineUpdate && this._lines) {
@@ -110,7 +155,7 @@ proto.update = function(options) {
     this._lines = null
   }
   if(!this._lines) {
-    this._lines = createLines(this.gl, this.bounds, this.tickSpacing)
+    this._lines = createLines(this.gl, this.bounds, ticks)
   }
 }
 
