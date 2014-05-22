@@ -25,6 +25,7 @@ function Axes(gl) {
   this.tickSpacing = [0.5, 0.5, 0.5]
   this.tickWidth = 1
   this.showTicks = [true, true, true]
+  this.textScale = 0.0
   this.font = "sans-serif"
   this._text = null
   this._lines = null
@@ -120,6 +121,10 @@ proto.update = function(options) {
   }
   if("font" in options) {
     this.font = options.font
+    textUpdate = true
+  }
+  if("textScale" in options) {
+    this.textScale = options.textScale
     textUpdate = true
   }
   var ticks = this._customTicks
