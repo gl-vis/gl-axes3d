@@ -31,7 +31,8 @@ shell.on("gl-init", function() {
       {x:4, text:"potato"}],
       [{x:0, text:"0"}, {x:0.5, text:"0.5"}],
       []
-    ]
+    ],
+    textScale: 1.0
   })
 })
 

@@ -153,7 +153,8 @@ proto.update = function(options) {
       this.bounds,
       ticks,
       this.font,
-      this.labels)
+      this.labels,
+      this.textScale)
   }
   if(lineUpdate && this._lines) {
     this._lines.dispose()
