@@ -25,14 +25,7 @@ shell.on("gl-init", function() {
   mesh = createMesh(gl, polygonize([64, 64, 64], f, bounds))
   axes = createAxes(gl, {
     bounds: bounds,
-    ticks: [
-      [{x:0, text:"foo"}, 
-      {x:-1, text:"bar"}, 
-      {x:4, text:"potato"}],
-      [{x:0, text:"0"}, {x:0.5, text:"0.5"}],
-      []
-    ],
-    textScale: 1.0
+    tickSpacing: [0.3, 0.3, 0.3]
   })
 })
 
