@@ -55,7 +55,7 @@ function prettyPrint(spacing, i) {
   var u = stepStr.indexOf(".")
   var sigFigs = 0
   if(u >= 0) {
-    sigFigs = stepStr.length - u
+    sigFigs = stepStr.length - u - 1
   }
   var shift = Math.pow(10, sigFigs)
   var x = Math.round(spacing * i * shift)
