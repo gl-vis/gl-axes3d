@@ -117,9 +117,7 @@ proto.update = function(options) {
     this.bounds = options.bounds
     lineUpdate = true
     textUpdate = true
-    if(!customTicks) {
-      ticksChanged = true
-    }
+    ticksChanged = true
   }
   if("labels" in options) {
     this.labels = options.labels
@@ -130,9 +128,7 @@ proto.update = function(options) {
       this.tickSpacing = [options.tickSpacing, options.tickSpacing, options.tickSpacing]
     }
     this.tickSpacing = options.tickSpacing
-    if(!customTicks) {
-      ticksChanged = true
-    }
+    ticksChanged = true
   }
   if("showAxes" in options) {
     if(typeof options.showAxes === "boolean") {
@@ -163,7 +159,7 @@ proto.update = function(options) {
     this.textScale = options.textScale
     textUpdate = true
   }
-  var ticks = this._customTicks
+  var ticks = customTicks
   if(ticksChanged) {
     textUpdate = true
     lineUpdate = true
