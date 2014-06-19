@@ -13,7 +13,9 @@
     "glslify": "^1.2.0",
     "gl-state": "^1.0.0",
     "bit-twiddle": "^1.0.0",
-    "vectorize-text": "^2.0.0"
+    "vectorize-text": "^2.0.0",
+    "extract-frustum-planes": "^1.0.0",
+    "split-polygon": "^1.0.0"
   },
   "devDependencies": {
     "game-shell-orbit-camera": "^0.0.0",
