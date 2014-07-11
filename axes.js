@@ -150,10 +150,18 @@ proto.update = function(options) {
     this.font = options.font
     textUpdate = true
   }
-  if("textScale" in options) {
-    this.textScale = options.textScale
-    textUpdate = true
+  if("textSize" in options) {
+    this.textScale = options.textSize
   }
+
+  if(!this.textScale) {
+    this.textScale = Infinity
+    for(var i=0; i<3; ++i) {
+      this.textScale = Math.min(this.textScale, 
+        0.05 * (this.bounds[1][i] - this.bounds[0][i]) / this.tickSpacing[i])
+    }
+  }
+
   var ticks = customTicks
   if(ticksChanged) {
     textUpdate = true
@@ -180,8 +188,7 @@ proto.update = function(options) {
       this.bounds,
       ticks,
       this.font,
-      this.labels,
-      this.textScale)
+      this.labels)
   }
   if(lineUpdate && this._lines) {
     this._lines.dispose()
@@ -257,7 +264,7 @@ proto.draw = function(params) {
     model,
     view,
     projection,
-    this)
+    this.textScale)
   for(var i=0; i<3; ++i) {
     if(!this.showTicks[i]) {
       continue
