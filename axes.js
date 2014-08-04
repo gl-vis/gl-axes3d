@@ -224,7 +224,6 @@ proto.draw = function(params) {
   gl.lineWidth(this.tickWidth)
 
   //Draw axes lines
-  gl.lineWidth(1)
   this._lines.bind(
     model,
     view,
