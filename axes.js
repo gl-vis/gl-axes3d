@@ -1,11 +1,13 @@
-"use strict"
+'use strict'
 
 module.exports = createAxes
 
-var createText = require("./lib/text.js")
-var createLines = require("./lib/lines.js")
-var getCubeProperties = require("./lib/cube.js")
-var createStateStack = require("gl-state")
+var createStateStack = require('gl-state')
+
+var createText        = require('./lib/text.js')
+var createLines       = require('./lib/lines.js')
+var getCubeProperties = require('./lib/cube.js')
+var Ticks             = require('./lib/ticks.js')
 
 var identity = new Float32Array([
   1, 0, 0, 0,
@@ -14,17 +16,55 @@ var identity = new Float32Array([
   0, 0, 0, 1])
 
 function Axes(gl) {
-  this.gl = gl
-  this.bounds = [[-10, -10, -10], [10,10,10]]
-  this.labels = ["x", "y", "z"]
-  this.tickSpacing = [0.5, 0.5, 0.5]
-  this.tickWidth = 1
-  this.showTicks = [true, true, true]
-  this.textScale = 0.0
-  this.font = "sans-serif"
-  this._text = null
+  this.gl             = gl
+
+  this.bounds         = [ [-10, -10, -10], 
+                          [ 10,  10,  10] ]
+  this.ticks          = [ [], [], [] ]
+  this.autoTicks      = true
+  this.tickSpacing    = [ 0.5, 0.5, 0.5 ]
+
+  this.tickEnable     = [ true, true, true ]
+  this.tickFont       = [ 'sans-serif', 'sans-serif', 'sans-serif' ]
+  this.tickSize       = [ 0, 0, 0 ]
+  this.tickAngle      = [ 0, 0, 0 ]
+  this.tickColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
+
+  this.labels         = [ 'x', 'y', 'z' ]
+  this.labelEnable    = [ true, true, true ]
+  this.labelFont      = 'sans-serif'
+  this.labelSize      = [ 0, 0, 0 ]
+  this.labelAngle     = [ 0, 0, 0 ]
+  this.labelColor     = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
+
+  this.lineEnable     = [ true, true, true ]
+  this.lineMirror     = [ false, false, false ]
+  this.lineWidth      = [ 1, 1, 1 ]
+  this.lineColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
+
+  this.lineTickEnable = [ true, true, true ]
+  this.lineTickMirror = [ false, false, false ]
+  this.lineTickLength = [ 0, 0, 0 ]
+  this.lineTickWidth  = [ 1, 1, 1 ]
+  this.lineTickColor  = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
+
+  this.gridEnable     = [ true, true, true ]
+  this.gridWidth      = [ 1, 1, 1 ]
+  this.gridColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
+
+  this.zeroEnable     = [ true, true, true ]
+  this.zeroLineColor  = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
+  this.zeroLineWidth  = [ 2, 2, 2 ]
+
+  this.backgroundEnable = [ false, false, false ]
+  this.backgroundColor  = [ [0.8, 0.8, 0.8, 0.5], 
+                            [0.8, 0.8, 0.8, 0.5], 
+                            [0.8, 0.8, 0.8, 0.5] ]
+
+  this._firstInit = true
+  this._text  = null
   this._lines = null
-  this._customTicks = null
+  this._box   = null
   this._state = createStateStack(gl, [
       gl.BLEND,
       gl.BLEND_DST_ALPHA,
@@ -37,148 +77,185 @@ function Axes(gl) {
       gl.CULL_FACE_MODE,
       gl.DEPTH_WRITEMASK,
       gl.DEPTH_TEST,
+      gl.DEPTH_FUNC,
       gl.LINE_WIDTH
     ])
-  this.axesColors = [[0,0,0], [0,0,0], [0,0,0]]
-  this.gridColor = [0,0,0]
 }
 
 var proto = Axes.prototype
 
-function prettyPrint(spacing, i) {
-  var stepStr = spacing + ""
-  var u = stepStr.indexOf(".")
-  var sigFigs = 0
-  if(u >= 0) {
-    sigFigs = stepStr.length - u - 1
-  }
-  var shift = Math.pow(10, sigFigs)
-  var x = Math.round(spacing * i * shift)
-  var xstr = x + ""
-  if(xstr.indexOf("e") >= 0) {
-    return xstr
-  }
-  var xi = x / shift, xf = x % shift
-  if(x < 0) {
-    xi = -Math.ceil(xi)|0
-    xf = (-xf)|0
-  } else {
-    xi = Math.floor(xi)|0
-    xf = xf|0
-  }
-  var xis = "" + xi 
-  if(x < 0) {
-    xis = "-" + xis
-  }
-  if(sigFigs) {
-    var xs = "" + xf
-    while(xs.length < sigFigs) {
-      xs = "0" + xs
-    }
-    return xis + "." + xs
-  } else {
-    return xis
-  }
-}
-
-function defaultTicks(bounds, tickSpacing) {
-  var array = []
-  for(var d=0; d<3; ++d) {
-    var ticks = []
-    var m = 0.5*(bounds[0][d]+bounds[1][d])
-    for(var t=0; t*tickSpacing[d]<=bounds[1][d]; ++t) {
-      ticks.push({x: t*tickSpacing[d], text: prettyPrint(tickSpacing[d], t)})
-    }
-    for(var t=-1; t*tickSpacing[d]>=bounds[0][d]; --t) {
-      ticks.push({x: t*tickSpacing[d], text: prettyPrint(tickSpacing[d], t)})
-    }
-    array.push(ticks)
-  }
-  return array
+function dupColor(color) {
+  return color.map(function(c) {
+    return c.slice()
+  })
 }
 
 proto.update = function(options) {
   options = options || {}
-  var lineUpdate = false
-  var textUpdate = false
-  var customTicks = this._customTicks
-  var ticksChanged = false
-  if("ticks" in options) {
-    ticksChanged = true
-    customTicks = options.ticks
-    lineUpdate = true
-  }
-  if("bounds" in options) {
-    this.bounds = options.bounds
-    lineUpdate = true
-    textUpdate = true
-    ticksChanged = true
-  }
-  if("labels" in options) {
-    this.labels = options.labels
-    textUpdate = true
-  }
-  if("tickSpacing" in options) {
-    if(typeof options.tickSpacing === "number") {
-      this.tickSpacing = [options.tickSpacing, options.tickSpacing, options.tickSpacing]
+
+  //Option parsing helper functions
+  function parseOption(nest, cons, name) {
+    if(name in options) {
+      var opt = options[name]
+      var prev = this[name]
+      var next
+      if(nest ? (Array.isArray(opt) && Array.isArray(opt[0])) :
+                 Array.isArray(opt) ) {
+        this[name] = next = [ cons(opt[0]), cons(opt[1]), cons(opt[2]) ]
+      } else {
+        this[name] = next = [ cons(opt), cons(opt), cons(opt) ]
+      }
+      for(var i=0; i<3; ++i) {
+        if(next[i] !== prev[i]) {
+          return true
+        }
+      }
     }
-    this.tickSpacing = options.tickSpacing
-    ticksChanged = true
-  }
-  if("showAxes" in options) {
-    if(typeof options.showAxes === "boolean") {
-      this.showAxes = [options.showAxes, options.showAxes, options.showAxes]
-    } else {
-      this.showAxes = options.showAxes
-    }
-  }
-  if("axesColors" in options) {
-    var colors = options.axesColors
-    if(Array.isArray(colors[0])) {
-      this.axesColors = colors
-    } else {
-      this.axesColors = [colors.slice(), colors.slice(), colors.slice()]
-    }
-  }
-  if("gridColor" in options) {
-    this.gridColor = options.gridColor
-  }
-  if("tickWidth" in options) {
-    this.tickWidth = options.tickWidth
-  }
-  if("font" in options) {
-    this.font = options.font
-    textUpdate = true
-  }
-  if("textSize" in options) {
-    this.textScale = options.textSize
+    return false
   }
 
-  if(!this.textScale) {
-    this.textScale = Infinity
-    for(var i=0; i<3; ++i) {
-      this.textScale = Math.min(this.textScale, 
-        0.05 * (this.bounds[1][i] - this.bounds[0][i]) / this.tickSpacing[i])
+  var NUMBER  = parseOption.bind(this, false, Number)
+  var BOOLEAN = parseOption.bind(this, false, Boolean)
+  var STRING  = parseOption.bind(this, false, String)
+  var COLOR   = parseOption.bind(this, true, function(v) {
+    if(Array.isArray(v)) {
+      if(v.length === 3) {
+        return [ +v[0], +v[1], +v[2], 1.0 ]
+      } else if(v.length === 4) {
+        return [ +v[0], +v[1], +v[2], +v[3] ]
+      }
+    }
+    return [ 0, 0, 0, 1 ]
+  })
+
+  //Tick marks and bounds
+  var nextTicks
+  var ticksUpdate   = false
+  var boundsChanged = false
+  if('bounds' in options) {
+    var bounds = options.bounds
+i_loop:
+    for(var i=0; i<2; ++i) {
+      for(var j=0; j<3; ++j) {
+        if(bounds[i][j] !== this.bounds[i][j]) {
+          this.bounds   = options.bounds
+          boundsChanged = true
+          break i_loop
+        }
+      }
     }
   }
-
-  var ticks = customTicks
-  if(ticksChanged) {
-    textUpdate = true
-    lineUpdate = true
-    if(options.ticks) {
-      ticks = options.ticks
-    } else {
-      ticks = defaultTicks(this.bounds, this.tickSpacing)
-    }
+  if('ticks' in options) {
+    nextTicks      = options.ticks
+    ticksUpdate    = true
+    this.autoTicks = false
     for(var i=0; i<3; ++i) {
-      ticks[i].sort(function(a,b) {
+      this.tickSpacing[i] = 0.0
+    }
+  }
+  if(NUMBER('tickSpacing')) {
+    this.autoTicks  = true
+    boundsChanged   = true
+  }
+
+  if(this._firstInit) {
+    if(!('ticks' in options || 'tickSpacing' in options)) {
+      this.autoTicks = true
+    }
+
+    //Force tick recomputation on first update
+    boundsChanged   = true
+    ticksUpdate     = true
+    this._firstInit = false
+  }
+
+  if(boundsChanged && this.autoTicks) {
+    nextTicks = Ticks.create(this.bounds, this.tickSpacing)
+  }
+
+  //Compare next ticks to previous ticks, only update if needed
+  if(ticksUpdate) {
+    for(var i=0; i<3; ++i) {
+      nextTicks[i].sort(function(a,b) {
         return a.x-b.x
       })
     }
-    this._customTicks = ticks
+    if(Ticks.equal(nextTicks, this.ticks)) {
+      ticksUpdate = false
+    } else {
+      this.ticks = nextTicks
+    }
   }
-  if(textUpdate && this._text) {
+
+  //Calculate default text size
+  var defaultSize = Infinity
+  for(var i=0; i<3; ++i) {
+    for(var j=1; j<this.ticks[i].length; ++j) {
+      var a = this.ticks[i][j-1].x
+      var b = this.ticks[i][j].x
+      var d = 0.05 * (b - a)
+      defaultSize = Math.min(defaultSize, d)
+    }
+  }
+
+  //Parse tick properties
+  BOOLEAN('tickEnable')
+  if(STRING('tickFont')) {
+    ticksUpdate = true  //If font changes, must rebuild vbo
+  }
+  NUMBER('tickSize')
+  for(var i=0; i<3; ++i) {
+    if(this.tickSize[i] <= 0 || isNaN(this.tickSize[i])) {
+      this.tickSize[i] = defaultSize
+    }
+  }
+  NUMBER('tickAngle')
+  COLOR('tickColor')
+
+  //Axis labels
+  var labelUpdate = STRING('labels')
+  if(STRING('labelFont')) {
+    labelUpdate = true
+  }
+  BOOLEAN('labelEnable')
+  NUMBER('labelSize')
+  for(var i=0; i<3; ++i) {
+    if(this.labelSize[i] <= 0 || isNaN(this.labelSize[i])) {
+      this.labelSize[i] = defaultSize
+    }
+  }
+  COLOR('labelColor')
+
+  //Axis lines
+  BOOLEAN('lineEnable')
+  BOOLEAN('lineMirror')
+  NUMBER('lineWidth')
+  COLOR('lineColor')
+
+  //Axis line ticks
+  BOOLEAN('lineTickEnable')
+  BOOLEAN('lineTickMirror')
+  NUMBER('lineTickLength')
+  NUMBER('lineTickWidth')
+  COLOR('lineTickColor')
+
+  //Grid lines
+  BOOLEAN('gridEnable')
+  NUMBER('gridWidth')
+  COLOR('gridColor')
+
+  //Zero line
+  BOOLEAN('zeroEnable')
+  COLOR('zeroLineColor')
+  NUMBER('zeroLineWidth')
+
+  //Background
+  BOOLEAN('backgroundEnable')
+  COLOR('backgroundColor')
+
+  /*
+  //Update text if necessary
+  if(this._text && (labelUpdate || ticksUpdate)) {
     this._text.dispose()
     this._text = null
   }
@@ -190,26 +267,31 @@ proto.update = function(options) {
       this.font,
       this.labels)
   }
-  if(lineUpdate && this._lines) {
+  */
+
+  //Update lines if necessary
+  if(this._lines && this.ticksUpdate) {
     this._lines.dispose()
     this._lines = null
   }
   if(!this._lines) {
-    this._lines = createLines(this.gl, this.bounds, ticks)
+    this._lines = createLines(this.gl, this.bounds, this.ticks)
   }
 }
 
 proto.draw = function(params) {
   params = params || {}
 
-  var model = params.model || identity
-  var view = params.view || identity
-  var projection = params.projection || identity
-  var bounds = this.bounds
+  //Geometry for camera and axes
+  var model       = params.model || identity
+  var view        = params.view || identity
+  var projection  = params.projection || identity
+  var bounds      = this.bounds
 
-  var cubeParams = getCubeProperties(model, view, projection, bounds)
-  var cubeEdges = cubeParams.edges
-  var axis = cubeParams.axis
+  //Unpack axis info
+  var cubeParams  = getCubeProperties(model, view, projection, bounds)
+  var cubeEdges   = cubeParams.edges
+  var cubeAxis    = cubeParams.axis
 
   //Save context state
   this._state.push()
@@ -219,45 +301,108 @@ proto.draw = function(params) {
   gl.enable(gl.CULL_FACE)
   gl.cullFace(gl.BACK)
   gl.enable(gl.DEPTH_TEST)
-  gl.depthMask(true)
-  gl.disable(gl.BLEND)
-  gl.lineWidth(this.tickWidth)
 
-  //Draw axes lines
+  //TODO: Draw background faces using blending
+
+  //Draw lines
+  gl.depthMask(true)
+  gl.depthFunc(gl.LEQUAL)
+  gl.disable(gl.BLEND)
   this._lines.bind(
     model,
     view,
     projection,
     this)
+
+  //First draw grid lines and zero lines
   for(var i=0; i<3; ++i) {
     var x = [0,0,0]
-    if(axis[i] > 0) {
+    if(cubeAxis[i] > 0) {
       x[i] = bounds[1][i]
     } else {
       x[i] = bounds[0][i]
     }
-    this._lines.drawBox(i, x, this.gridColor)
 
-    if(!this.showTicks[i]) {
-      continue
-    }
-    var e = cubeEdges[i]
-    var c = [0,0,0]
-    var minor = [0,0,0]
-    for(var j=0; j<3; ++j) {
-      if(e & (1<<j)) {
-        c[j] = bounds[1][j] + 0.5 * this.tickSpacing[j]
-        minor[j] = -0.125 * this.tickSpacing[j]
-      } else {
-        c[j] = bounds[0][j] - 0.5 * this.tickSpacing[j]
-        minor[j] = 0.125 * this.tickSpacing[j]
+    //Draw grid lines
+    for(var j=0; j<2; ++j) {
+      var u = (i + 1 + j) % 3
+      var v = (i + 1 + (j^1)) % 3
+      if(this.gridEnable[u]) {
+        gl.lineWidth(this.gridWidth[u])
+        this._lines.drawGrid(u, v, this.bounds, x, this.gridColor[u])
       }
     }
-    c[i] = 0
-    minor[i] = 0
-    this._lines.drawAxis(i, c, minor, this.axesColors[i])
+
+    //Draw zero line
+    for(var j=1; j<=2; ++j) {
+      var u = (i + j) % 3
+      if(this.zeroEnable[u]) {
+        //Check if zero line in bounds
+        if(bounds[0][u] <= 0 && bounds[1][u] >= 0) {
+          gl.lineWidth(this.zeroLineWidth[u])
+          this._lines.drawZero(u, this.bounds, x, this.zeroLineColor[u])
+        }
+      }
+    }
   }
 
+  //Then draw axis lines and tick marks
+  for(var i=0; i<3; ++i) {
+
+    //Compute edge coordinates
+    var primalOffset = [0,0,0]
+    var primalMinor  = [0,0,0]
+    var dualOffset   = [0,0,0]
+    var dualMinor    = [0,0,0]
+    var e = cubeEdges[i]
+    var tickLength = this.lineTickLength[i]
+
+    //Calculate offsets
+    for(var j=0; j<3; ++j) {
+      if(i === j) {
+        continue
+      }
+      var a = primalOffset, 
+          b = dualOffset,
+          c = primalMinor,
+          d = dualMinor
+      if(e & (1<<j)) {
+        a = dualOffset
+        b = primalOffset
+        c = dualMinor
+        d = primalMinor
+      }
+      a[j] = bounds[0][j]
+      b[j] = bounds[1][j]
+      if(cubeAxis[j] > 0) {
+        c[j] = -tickLength
+      } else {
+        d[j] = tickLength
+      }
+    }
+
+    //Draw axis lines
+    gl.lineWidth(this.lineWidth[i])
+    if(this.lineEnable[i]) {
+      this._lines.drawAxisLine(i, this.bounds, primalOffset, this.lineColor[i])
+    }
+    if(this.lineMirror[i]) {
+      this._lines.drawAxisLine(i, this.bounds, dualOffset, this.lineColor[i])
+    }
+
+    //Draw axis line ticks
+    gl.lineWidth(this.lineTickWidth[i])
+    if(this.lineTickEnable[i]) {
+      this._lines.drawAxisTicks(i, primalOffset, primalMinor, this.lineTickColor[i])
+    }
+    if(this.lineTickMirror[i]) {
+      this._lines.drawAxisTicks(i, dualOffset, dualMinor, this.lineTickColor[i])
+    }
+  }
+
+
+
+  /*
   //Draw text sprites
   this._text.bind(
     model,
@@ -289,6 +434,7 @@ proto.draw = function(params) {
     //Draw label
     this._text.drawLabel(i, q, this.axesColors[i])
   }
+  */
 
   //Restore context state
   this._state.pop()

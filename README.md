@@ -103,18 +103,60 @@ Draws the axes object with the given camera parameters.  The `camera` object can
 All camera matrices are in 4x4 homogeneous coordinates and encoded as length 16 arrays as done by [`gl-matrix`](https://github.com/toji/gl-matrix).
 
 ### `axes.update(params)`
-Updates the parameters of the axes object using the properties in `params`. These can be as follows:
+Updates the parameters of the axes object using the properties in `params`. These are grouped into the following categories:
+
+#### Dimensions and tick lines
 
 * `bounds` the bounding box for the axes object, represented as a pair of 3D arrays encoding the lower and upper bounds for each component.  Default is `[[-10,-10,-10],[10,10,10]]`
-* `labels` a 3D array encoding the labels for each of the 3 axes.  Default is `['x', 'y', 'z']`
 * `tickSpacing` either a number or 3d array representing the spacing between the tick lines for each axis. Default is `0.5`
-* `showAxes` a vector of boolean values determining which of the 3 axes tick lines to show.  Default is `[true,true,true]`
-* `tickWidth` the width of a tick line in the underlying box in pixels
-* `font` the font family to use for rendering text.  Default `'sans-serif'`
-* `axesColors` an array of colors for each axis, or else a single 3D array encoding all axes colors.  Default is `[[0,0,0], [0,0,0], [0,0,0]]`
-* `gridColor` the color of the grid lines in the background.  Default is `[0,0,0]`
 * `ticks` Alternatively, you can specify custom tick labels for each axis by passing in an array of 3 arrays of tick markings.  Each tick marking array is an array of objects with the properties `x` and `text` which denote the position on the tick axis and the text of the tick label respectively.
-* `textSize` the size of the text in *world coordinates*.
+
+#### Tick text
+
+* `tickEnable` a boolean value (or array of boolean values) which selects whether the tick text is drawn.  Default `true`
+* `tickFont` a string (or array of strings) encoding the font style for the tick text.  Default `'sans-serif'`
+* `tickSize` the size of the font text in world coordinates.  Default is computed from tick spacing.
+* `tickAngle` the angle to rotate the text from.  Default `0`
+* `tickColor` the color of the text for each tick axis. Default `[0,0,0]`
+
+#### Labels
+
+* `labelEnable` a boolean value or array of boolean
+* `labelText` a 3D array encoding the labels for each of the 3 axes.  Default is `['x', 'y', 'z']`
+* `labelFont` a string (or array of strings) representing the font for each axis.  Default `'sans-serif'`
+* `labelSize` the size of the label text in world units.  Default is computed from tick spacing
+* `labelColor` a color array or array of color arrays encoding the color of the label for each axis.  Default `[0,0,0]`
+
+#### Axis lines
+
+* `lineEnable` a boolean (or array of booleans) determining which of the 3 axes tick lines to show.  Default is `true`
+* `lineWidth` a number (or array of numbers) determining the width of the axis lines in pixel coordinates.  Default is `1`
+* `lineMirror` a boolean (or array of booleans) describing which axis lines to mirror.  Default is `false`
+* `lineColor` a color array (or array of color arrays) encoding the color of each axis line.  Default is `[0,0,0]`
+
+#### Axis line ticks
+
+* `lineTickLength` a number (or array of numbers) giving the length of each axis tick in data coordinates.  If this number is positive, the ticks point outward.  If negative, the ticks point inward.  If `0`, the tick marks are not drawn.  Default `0`
+* `lineTickMirror` a boolean (or array of booleans) which determines whether the line ticks will be mirrored (similar behavior to `lineMirror`).  Default is `false`
+* `lineTickWidth` a number (or array of numbers) giving the width of the tick lines pixel coordinates. Default `1`
+* `lineTickColor` a color (or array of colors) giving the color of the line ticks.  Default `[0,0,0]`
+
+#### Grid lines
+
+* `gridEnable` a boolean (or array of booleans) determining which grid lines to draw.  Default is `true`
+* `gridWidth` a number (or array of numbers) giving the width of the grid lines in pixel units. Default is `1`
+* `gridColor` a color array (or array of color arrays) giving the color of the grid lines for each axis.  Default is `[0,0,0]`
+
+#### Zero line
+
+* `zeroEnable` a boolean (or array of booleans) which describes which zero lines to draw.  Default is `true`
+* `zeroLineColor` a color array (or array of color arrays) giving the color of the zero line.  Default is `[0,0,0]`
+* `zeroLineWidth` a number (or array of numbers) giving the width of the zero line.  Default is `2`
+
+#### Background
+
+* `backgroundEnable` a boolean (or array of booleans) describing which background plane to draw.  Default is `false`
+* `backgroundColor` the color of each background plane.  Default is `[0.8,0.8,0.8,0.5]`
 
 ### `axes.dispose()`
 Releases all resources associated with this axes object.
