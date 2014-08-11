@@ -298,19 +298,17 @@ proto.draw = function(params) {
   gl.cullFace(gl.BACK)
   gl.enable(gl.DEPTH_TEST)
 
-  //Draw background faces using blending
-  gl.enable(gl.BLEND)
+  //Draw background
   gl.depthMask(false)
-
-  //TODO: Set blend func
-
+  gl.enable(gl.BLEND)
+  gl.blendEquation(gl.FUNC_ADD)
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
   var cubeEnable = [ 0, 0, 0 ]
   for(var i=0; i<3; ++i) {
     if(this.backgroundEnable[i]) {
       cubeEnable[i] = cubeAxis[i]
     }
   }
-
   this._background.draw(
     model, 
     view, 
