@@ -6,6 +6,7 @@ var createStateStack = require('gl-state')
 
 var createText        = require('./lib/text.js')
 var createLines       = require('./lib/lines.js')
+var createBackground  = require('./lib/background.js')
 var getCubeProperties = require('./lib/cube.js')
 var Ticks             = require('./lib/ticks.js')
 
@@ -64,7 +65,7 @@ function Axes(gl) {
   this._firstInit = true
   this._text  = null
   this._lines = null
-  this._box   = null
+  this._background = createBackground(gl)
   this._state = createStateStack(gl, [
       gl.BLEND,
       gl.BLEND_DST_ALPHA,
@@ -80,15 +81,10 @@ function Axes(gl) {
       gl.DEPTH_FUNC,
       gl.LINE_WIDTH
     ])
+
 }
 
 var proto = Axes.prototype
-
-function dupColor(color) {
-  return color.map(function(c) {
-    return c.slice()
-  })
-}
 
 proto.update = function(options) {
   options = options || {}
@@ -302,7 +298,26 @@ proto.draw = function(params) {
   gl.cullFace(gl.BACK)
   gl.enable(gl.DEPTH_TEST)
 
-  //TODO: Draw background faces using blending
+  //Draw background faces using blending
+  gl.enable(gl.BLEND)
+  gl.depthMask(false)
+
+  //TODO: Set blend func
+
+  var cubeEnable = [ 0, 0, 0 ]
+  for(var i=0; i<3; ++i) {
+    if(this.backgroundEnable[i]) {
+      cubeEnable[i] = cubeAxis[i]
+    }
+  }
+
+  this._background.draw(
+    model, 
+    view, 
+    projection, 
+    this.bounds, 
+    cubeEnable,
+    this.backgroundColor)
 
   //Draw lines
   gl.depthMask(true)
@@ -400,8 +415,6 @@ proto.draw = function(params) {
     }
   }
 
-
-
   /*
   //Draw text sprites
   this._text.bind(
@@ -443,6 +456,7 @@ proto.draw = function(params) {
 proto.dispose = function() {
   this._text.dispose()
   this._lines.dispose()
+  this._background.dispose()
 }
 
 function createAxes(gl, options) {

@@ -17,7 +17,9 @@ shell.on("gl-init", function() {
     lineMirror: true,
     lineTickEnable: true,
     lineTickMirror: true,
-    lineTickLength: 0.8
+    lineTickLength: 0.8,
+    backgroundEnable: true,
+    backgroundColor: [ [1,0,0], [0,1,0], [0,0,1] ]
   })
 })
 

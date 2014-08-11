@@ -136,8 +136,9 @@ Updates the parameters of the axes object using the properties in `params`. Thes
 
 #### Axis line ticks
 
-* `lineTickLength` a number (or array of numbers) giving the length of each axis tick in data coordinates.  If this number is positive, the ticks point outward.  If negative, the ticks point inward.  If `0`, the tick marks are not drawn.  Default `0`
+* `lineTickEnable` a boolean (or array of booleans) which determines whether or not to draw the line ticks.  Default is `false`
 * `lineTickMirror` a boolean (or array of booleans) which determines whether the line ticks will be mirrored (similar behavior to `lineMirror`).  Default is `false`
+* `lineTickLength` a number (or array of numbers) giving the length of each axis tick in data coordinates.  If this number is positive, the ticks point outward.  If negative, the ticks point inward.  If `0`, the tick marks are not drawn.  Default `0`
 * `lineTickWidth` a number (or array of numbers) giving the width of the tick lines pixel coordinates. Default `1`
 * `lineTickColor` a color (or array of colors) giving the color of the line ticks.  Default `[0,0,0]`
 
