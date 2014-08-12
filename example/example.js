@@ -1,25 +1,38 @@
-"use strict"
-
-var shell = require("gl-now")({ clearColor: [0,0,0,0], tickRate: 5 })
+//Load shell
+var shell = require("gl-now")({ clearColor: [0,0,0,0] })
 var camera = require("game-shell-orbit-camera")(shell)
-var mat4 = require("gl-matrix").mat4
-var createAxes = require("../axes.js")
 
-camera.lookAt([-15,20,-15], [0,0,0], [0, 1, 0])
+//Mesh creation tools
+var createMesh = require("gl-simplicial-complex")
+var polygonize = require("isosurface").surfaceNets
+var createAxes = require("../axes")
+
+//Matrix math
+var mat4 = require("gl-matrix").mat4
+
+//Bounds on function to plot
+var bounds = [[-5,-5,-5], [5,5,5]]
+
+//Plot level set of f = 0
+function f(x,y,z) {
+  return x*x + y*y + z*z - 2.0
+}
 
 //State variables
-var axes
+var mesh, axes
 
 shell.on("gl-init", function() {
   var gl = shell.gl
-  axes = createAxes(gl, {
-    gridColor: [0.5,0.5,0.5],
-    lineMirror: true,
-    lineTickEnable: true,
-    lineTickMirror: true,
-    lineTickLength: 0.8,
-    backgroundEnable: true,
-    backgroundColor: [ [1,0,0], [0,1,0], [0,0,1] ]
+
+  //Set up camera
+  camera.lookAt(bounds[1], [0,0,0], [0, 1, 0])
+
+  //Create mesh
+  mesh = createMesh(gl, polygonize([64, 64, 64], f, bounds))
+
+  //Create axes object
+  axes = createAxes(gl, { 
+    bounds: bounds
   })
 })
 
@@ -35,13 +48,12 @@ shell.on("gl-render", function() {
         Math.PI/4.0,
         shell.width/shell.height,
         0.1,
-        1000.0),
-    model: [1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1]
+        1000.0)
   }
+  
+  //Draw mesh
+  mesh.draw(cameraParameters)
 
-  //Draw objects
+  //Draw axes
   axes.draw(cameraParameters)
 })

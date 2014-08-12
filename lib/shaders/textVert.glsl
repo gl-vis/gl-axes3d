@@ -2,13 +2,24 @@ attribute vec3 position;
 
 uniform mat4 model, view, projection;
 uniform vec3 offset, axis;
-uniform float textScale;
+uniform float scale, angle;
 
-void main() {
-  float t = position.z;
-  vec4 worldPosition = model * vec4(t * axis + offset, 1);
-  vec4 viewPosition = view * worldPosition + textScale * vec4(position.xy, 0, 0);
+void main() {  
+  //Compute plane offset
+  vec2 planeCoord = position.xy;
+  mat2 planeXform = scale * mat2(cos(angle), sin(angle),
+                                -sin(angle), cos(angle));
+  vec2 viewOffset = planeXform * planeCoord;
+
+  //Compute world offset
+  float axisDistance = position.z;
+  vec3 dataPosition = axisDistance * axis + offset;
+  vec4 worldPosition = model * vec4(dataPosition, 1);
+
+  //Compute clip position
+  vec4 viewPosition = view * worldPosition + vec4(viewOffset, 0, 0);
   vec4 clipPosition = projection * viewPosition;
-  clipPosition /= clipPosition.w;
+
+  //Done
   gl_Position = clipPosition;
 }

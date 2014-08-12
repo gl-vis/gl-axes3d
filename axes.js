@@ -23,13 +23,14 @@ function Axes(gl) {
                           [ 10,  10,  10] ]
   this.ticks          = [ [], [], [] ]
   this.autoTicks      = true
-  this.tickSpacing    = [ 0.5, 0.5, 0.5 ]
+  this.tickSpacing    = [ 1, 1, 1 ]
 
   this.tickEnable     = [ true, true, true ]
   this.tickFont       = [ 'sans-serif', 'sans-serif', 'sans-serif' ]
   this.tickSize       = [ 0, 0, 0 ]
   this.tickAngle      = [ 0, 0, 0 ]
   this.tickColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
+  this.tickPad        = [ 1, 1, 1 ]
 
   this.labels         = [ 'x', 'y', 'z' ]
   this.labelEnable    = [ true, true, true ]
@@ -37,6 +38,7 @@ function Axes(gl) {
   this.labelSize      = [ 0, 0, 0 ]
   this.labelAngle     = [ 0, 0, 0 ]
   this.labelColor     = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
+  this.labelPad       = [ 1.5, 1.5, 1.5 ]
 
   this.lineEnable     = [ true, true, true ]
   this.lineMirror     = [ false, false, false ]
@@ -189,7 +191,7 @@ i_loop:
     for(var j=1; j<this.ticks[i].length; ++j) {
       var a = this.ticks[i][j-1].x
       var b = this.ticks[i][j].x
-      var d = 0.05 * (b - a)
+      var d = 0.5 * (b - a)
       defaultSize = Math.min(defaultSize, d)
     }
   }
@@ -206,6 +208,7 @@ i_loop:
     }
   }
   NUMBER('tickAngle')
+  NUMBER('tickPad')
   COLOR('tickColor')
 
   //Axis labels
@@ -220,6 +223,7 @@ i_loop:
       this.labelSize[i] = defaultSize
     }
   }
+  NUMBER('labelPad')
   COLOR('labelColor')
 
   //Axis lines
@@ -249,7 +253,6 @@ i_loop:
   BOOLEAN('backgroundEnable')
   COLOR('backgroundColor')
 
-  /*
   //Update text if necessary
   if(this._text && (labelUpdate || ticksUpdate)) {
     this._text.dispose()
@@ -259,12 +262,12 @@ i_loop:
     this._text = createText(
       this.gl, 
       this.bounds,
-      ticks,
-      this.font,
-      this.labels)
+      this.labels,
+      this.labelFont,
+      this.ticks,
+      this.tickFont)
   }
-  */
-
+  
   //Update lines if necessary
   if(this._lines && this.ticksUpdate) {
     this._lines.dispose()
@@ -272,6 +275,45 @@ i_loop:
   }
   if(!this._lines) {
     this._lines = createLines(this.gl, this.bounds, this.ticks)
+  }
+}
+
+function computeLineOffset(i, bounds, cubeEdges, cubeAxis) {
+  var primalOffset = [0,0,0]
+  var primalMinor  = [0,0,0]
+  var dualOffset   = [0,0,0]
+  var dualMinor    = [0,0,0]
+  var e = cubeEdges[i]
+
+  //Calculate offsets
+  for(var j=0; j<3; ++j) {
+    if(i === j) {
+      continue
+    }
+    var a = primalOffset, 
+        b = dualOffset,
+        c = primalMinor,
+        d = dualMinor
+    if(e & (1<<j)) {
+      a = dualOffset
+      b = primalOffset
+      c = dualMinor
+      d = primalMinor
+    }
+    a[j] = bounds[0][j]
+    b[j] = bounds[1][j]
+    if(cubeAxis[j] > 0) {
+      c[j] = -1
+    } else {
+      d[j] = +1
+    }
+  }
+
+  return {
+    primalOffset: primalOffset,
+    primalMinor:  primalMinor,
+    mirrorOffset: dualOffset,
+    mirrorMinor:  dualMinor
   }
 }
 
@@ -288,6 +330,15 @@ proto.draw = function(params) {
   var cubeParams  = getCubeProperties(model, view, projection, bounds)
   var cubeEdges   = cubeParams.edges
   var cubeAxis    = cubeParams.axis
+
+  //Compute axis info
+  var lineOffset  = new Array(3)
+  for(var i=0; i<3; ++i) {
+    lineOffset[i] = computeLineOffset(i, 
+        this.bounds, 
+        cubeEdges, 
+        cubeAxis)
+  }
 
   //Save context state
   this._state.push()
@@ -362,90 +413,83 @@ proto.draw = function(params) {
   //Then draw axis lines and tick marks
   for(var i=0; i<3; ++i) {
 
-    //Compute edge coordinates
-    var primalOffset = [0,0,0]
-    var primalMinor  = [0,0,0]
-    var dualOffset   = [0,0,0]
-    var dualMinor    = [0,0,0]
-    var e = cubeEdges[i]
-    var tickLength = this.lineTickLength[i]
-
-    //Calculate offsets
-    for(var j=0; j<3; ++j) {
-      if(i === j) {
-        continue
-      }
-      var a = primalOffset, 
-          b = dualOffset,
-          c = primalMinor,
-          d = dualMinor
-      if(e & (1<<j)) {
-        a = dualOffset
-        b = primalOffset
-        c = dualMinor
-        d = primalMinor
-      }
-      a[j] = bounds[0][j]
-      b[j] = bounds[1][j]
-      if(cubeAxis[j] > 0) {
-        c[j] = -tickLength
-      } else {
-        d[j] = tickLength
-      }
-    }
-
     //Draw axis lines
     gl.lineWidth(this.lineWidth[i])
     if(this.lineEnable[i]) {
-      this._lines.drawAxisLine(i, this.bounds, primalOffset, this.lineColor[i])
+      this._lines.drawAxisLine(i, this.bounds, lineOffset[i].primalOffset, this.lineColor[i])
     }
     if(this.lineMirror[i]) {
-      this._lines.drawAxisLine(i, this.bounds, dualOffset, this.lineColor[i])
+      this._lines.drawAxisLine(i, this.bounds, lineOffset[i].mirrorOffset, this.lineColor[i])
+    }
+
+    //Compute minor axes
+    var primalMinor = lineOffset[i].primalMinor.slice()
+    var mirrorMinor = lineOffset[i].mirrorMinor.slice()
+    var tickLength  = this.lineTickLength[i]
+    for(var j=0; j<3; ++j) {
+      primalMinor[j] *= tickLength
+      mirrorMinor[j] *= tickLength
     }
 
     //Draw axis line ticks
     gl.lineWidth(this.lineTickWidth[i])
     if(this.lineTickEnable[i]) {
-      this._lines.drawAxisTicks(i, primalOffset, primalMinor, this.lineTickColor[i])
+      this._lines.drawAxisTicks(i, lineOffset[i].primalOffset, primalMinor, this.lineTickColor[i])
     }
     if(this.lineTickMirror[i]) {
-      this._lines.drawAxisTicks(i, dualOffset, dualMinor, this.lineTickColor[i])
+      this._lines.drawAxisTicks(i, lineOffset[i].mirrorOffset, mirrorMinor, this.lineTickColor[i])
     }
   }
 
-  /*
   //Draw text sprites
   this._text.bind(
     model,
     view,
-    projection,
-    this.textScale)
+    projection)
+
   for(var i=0; i<3; ++i) {
-    if(!this.showTicks[i]) {
-      continue
-    }
-    var e = cubeEdges[i]
-    var c = [0,0,0]
-    var q = [0,0,0]
+
+    var tickLength = Math.max(this.lineTickLength[i], 0)
+    var minor      = lineOffset[i].primalMinor
+    var offset     = lineOffset[i].primalOffset.slice()
     for(var j=0; j<3; ++j) {
-      if(e & (1<<j)) {
-        c[j] = bounds[1][j] + 1.0 * this.tickSpacing[j]
-        q[j] = bounds[1][j] + 1.5 * this.tickSpacing[j]
-      } else {
-        c[j] = bounds[0][j] - 1.0 * this.tickSpacing[j]
-        q[j] = bounds[0][j] - 1.5 * this.tickSpacing[j]
-      }
+      offset[j] += minor[j] * tickLength
     }
-    c[i] = 0
-    q[i] = 0.5 * (bounds[0][i] + bounds[1][i])
 
-    //Draw axis
-    this._text.drawAxis(i, c, this.axesColors[i])
+    //Draw tick text
+    if(this.tickEnable[i]) {
+      
+      //Add tick padding
+      for(var j=0; j<3; ++j) {
+        offset[j] += minor[j] * this.tickPad[i]
+      }
 
-    //Draw label
-    this._text.drawLabel(i, q, this.axesColors[i])
+      //Draw axis
+      this._text.drawTicks(
+        i, 
+        this.tickSize[i], 
+        this.tickAngle[i],
+        offset,
+        this.tickColor[i])
+    }
+
+    //Draw labels
+    if(this.labelEnable[i]) {
+
+      //Add label padding
+      for(var j=0; j<3; ++j) {
+        offset[j] += minor[j] * this.labelPad[i]
+      }
+
+      //Draw axis
+      this._text.drawLabel(
+        i, 
+        this.labelSize[i], 
+        this.labelAngle[i],
+        offset,
+        this.labelColor[i])
+    }
   }
-  */
 
   //Restore context state
   this._state.pop()
