@@ -1,6 +1,6 @@
 {
   "name": "gl-axes",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "description": "Renders axes for WebGL plots",
   "main": "axes.js",
   "directories": {
