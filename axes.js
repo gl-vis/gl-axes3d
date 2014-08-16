@@ -387,24 +387,20 @@ proto.draw = function(params) {
       x[i] = bounds[0][i]
     }
 
-    //Draw grid lines
     for(var j=0; j<2; ++j) {
       var u = (i + 1 + j) % 3
       var v = (i + 1 + (j^1)) % 3
+      //Draw grid lines
       if(this.gridEnable[u]) {
         gl.lineWidth(this.gridWidth[u])
         this._lines.drawGrid(u, v, this.bounds, x, this.gridColor[u])
       }
-    }
-
-    //Draw zero line
-    for(var j=1; j<=2; ++j) {
-      var u = (i + j) % 3
-      if(this.zeroEnable[u]) {
+      //Draw zero lines
+      if(this.zeroEnable[v]) {
         //Check if zero line in bounds
-        if(bounds[0][u] <= 0 && bounds[1][u] >= 0) {
-          gl.lineWidth(this.zeroLineWidth[u])
-          this._lines.drawZero(u, this.bounds, x, this.zeroLineColor[u])
+        if(bounds[0][v] <= 0 && bounds[1][v] >= 0) {
+          gl.lineWidth(this.zeroLineWidth[v])
+          this._lines.drawZero(u, this.bounds, x, this.zeroLineColor[v])
         }
       }
     }
@@ -480,6 +476,7 @@ proto.draw = function(params) {
       for(var j=0; j<3; ++j) {
         offset[j] += minor[j] * this.labelPad[i]
       }
+      offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
 
       //Draw axis
       this._text.drawLabel(
