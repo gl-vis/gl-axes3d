@@ -387,15 +387,20 @@ proto.draw = function(params) {
       x[i] = bounds[0][i]
     }
 
+    //Draw grid lines
     for(var j=0; j<2; ++j) {
       var u = (i + 1 + j) % 3
       var v = (i + 1 + (j^1)) % 3
-      //Draw grid lines
       if(this.gridEnable[u]) {
         gl.lineWidth(this.gridWidth[u])
         this._lines.drawGrid(u, v, this.bounds, x, this.gridColor[u])
       }
-      //Draw zero lines
+    }
+
+    //Draw zero lines (need to do this AFTER all grid lines are drawn)
+    for(var j=0; j<2; ++j) {
+      var u = (i + 1 + j) % 3
+      var v = (i + 1 + (j^1)) % 3
       if(this.zeroEnable[v]) {
         //Check if zero line in bounds
         if(bounds[0][v] <= 0 && bounds[1][v] >= 0) {
