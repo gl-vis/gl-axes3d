@@ -269,7 +269,7 @@ i_loop:
   }
   
   //Update lines if necessary
-  if(this._lines && this.ticksUpdate) {
+  if(this._lines && ticksUpdate) {
     this._lines.dispose()
     this._lines = null
   }
