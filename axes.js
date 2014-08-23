@@ -453,8 +453,11 @@ proto.draw = function(params) {
     var tickLength = Math.max(this.lineTickLength[i], 0)
     var minor      = lineOffset[i].primalMinor
     var offset     = lineOffset[i].primalOffset.slice()
+    
     for(var j=0; j<3; ++j) {
-      offset[j] += minor[j] * tickLength
+      if(this.lineTickEnable[j]) {
+        offset[j] += minor[j] * tickLength
+      }
     }
 
     //Draw tick text
