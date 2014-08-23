@@ -27,7 +27,7 @@ function Axes(gl) {
 
   this.tickEnable     = [ true, true, true ]
   this.tickFont       = [ 'sans-serif', 'sans-serif', 'sans-serif' ]
-  this.tickSize       = [ 0, 0, 0 ]
+  this.tickSize       = [ 12, 12, 12 ]
   this.tickAngle      = [ 0, 0, 0 ]
   this.tickColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
   this.tickPad        = [ 1, 1, 1 ]
@@ -35,7 +35,7 @@ function Axes(gl) {
   this.labels         = [ 'x', 'y', 'z' ]
   this.labelEnable    = [ true, true, true ]
   this.labelFont      = 'sans-serif'
-  this.labelSize      = [ 0, 0, 0 ]
+  this.labelSize      = [ 20, 20, 20 ]
   this.labelAngle     = [ 0, 0, 0 ]
   this.labelColor     = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
   this.labelPad       = [ 1.5, 1.5, 1.5 ]
@@ -185,28 +185,12 @@ i_loop:
     }
   }
 
-  //Calculate default text size
-  var defaultSize = Infinity
-  for(var i=0; i<3; ++i) {
-    for(var j=1; j<this.ticks[i].length; ++j) {
-      var a = this.ticks[i][j-1].x
-      var b = this.ticks[i][j].x
-      var d = 0.5 * (b - a)
-      defaultSize = Math.min(defaultSize, d)
-    }
-  }
-
   //Parse tick properties
   BOOLEAN('tickEnable')
   if(STRING('tickFont')) {
     ticksUpdate = true  //If font changes, must rebuild vbo
   }
   NUMBER('tickSize')
-  for(var i=0; i<3; ++i) {
-    if(this.tickSize[i] <= 0 || isNaN(this.tickSize[i])) {
-      this.tickSize[i] = defaultSize
-    }
-  }
   NUMBER('tickAngle')
   NUMBER('tickPad')
   COLOR('tickColor')
@@ -218,11 +202,6 @@ i_loop:
   }
   BOOLEAN('labelEnable')
   NUMBER('labelSize')
-  for(var i=0; i<3; ++i) {
-    if(this.labelSize[i] <= 0 || isNaN(this.labelSize[i])) {
-      this.labelSize[i] = defaultSize
-    }
-  }
   NUMBER('labelPad')
   COLOR('labelColor')
 
@@ -453,7 +432,7 @@ proto.draw = function(params) {
     var tickLength = Math.max(this.lineTickLength[i], 0)
     var minor      = lineOffset[i].primalMinor
     var offset     = lineOffset[i].primalOffset.slice()
-    
+
     for(var j=0; j<3; ++j) {
       if(this.lineTickEnable[j]) {
         offset[j] += minor[j] * tickLength

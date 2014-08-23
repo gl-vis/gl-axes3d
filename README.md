@@ -114,7 +114,7 @@ Updates the parameters of the axes object using the properties in `params`. Thes
 
 * `tickEnable` a boolean value (or array of boolean values) which selects whether the tick text is drawn.  Default `true`
 * `tickFont` a string (or array of strings) encoding the font style for the tick text.  Default `'sans-serif'`
-* `tickSize` the size of the font text in world coordinates.  Default is computed from tick spacing.
+* `tickSize` the size of the font text in pixel coordinates.  Default is computed from tick spacing.
 * `tickAngle` a number (or array of numbers) encoding the angle of the tick text with the vertical axis in radians.  Default `0`
 * `tickColor` a color (or array of colors) indicating the color of the text for each tick axis. Default `[0,0,0]`
 * `tickPad` a number (or array of numbers) encoding the world coordinate offset of the tick labels from tick marks.  Default `1`
@@ -124,7 +124,7 @@ Updates the parameters of the axes object using the properties in `params`. Thes
 * `labelEnable` a boolean value or array of boolean
 * `labelText` a 3D array encoding the labels for each of the 3 axes.  Default is `['x', 'y', 'z']`
 * `labelFont` a string (or array of strings) representing the font for each axis.  Default `'sans-serif'`
-* `labelSize` the size of the label text in world units.  Default is computed from tick spacing
+* `labelSize` the size of the label text in pixel coordinates.  Default is computed from tick spacing
 * `labelAngle` a number (or array of numbers) encoding the angle of the label text with the vertical axis in radians.  Default `0`
 * `labelColor` a color array (or array of color arrays) encoding the color of the label for each axis.  Default `[0,0,0]`
 * `labelPad` a number (or array of numbers) encoding the world coordinate offset of the labels from the data axes.  Default `1.5`
