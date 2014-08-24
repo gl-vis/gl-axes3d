@@ -444,7 +444,7 @@ proto.draw = function(params) {
       
       //Add tick padding
       for(var j=0; j<3; ++j) {
-        offset[j] += minor[j] * this.tickPad[i]
+        offset[j] += minor[j] * this.tickPad[j]
       }
 
       //Draw axis
@@ -461,7 +461,7 @@ proto.draw = function(params) {
 
       //Add label padding
       for(var j=0; j<3; ++j) {
-        offset[j] += minor[j] * this.labelPad[i]
+        offset[j] += minor[j] * this.labelPad[j]
       }
       offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
 
