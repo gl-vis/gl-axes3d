@@ -405,10 +405,10 @@ proto.draw = function(params) {
     //Compute minor axes
     var primalMinor = lineOffset[i].primalMinor.slice()
     var mirrorMinor = lineOffset[i].mirrorMinor.slice()
-    var tickLength  = this.lineTickLength[i]
+    var tickLength  = this.lineTickLength
     for(var j=0; j<3; ++j) {
-      primalMinor[j] *= tickLength
-      mirrorMinor[j] *= tickLength
+      primalMinor[j] *= tickLength[j]
+      mirrorMinor[j] *= tickLength[j]
     }
 
     //Draw axis line ticks
@@ -429,13 +429,12 @@ proto.draw = function(params) {
 
   for(var i=0; i<3; ++i) {
 
-    var tickLength = Math.max(this.lineTickLength[i], 0)
     var minor      = lineOffset[i].primalMinor
     var offset     = lineOffset[i].primalOffset.slice()
 
     for(var j=0; j<3; ++j) {
-      if(this.lineTickEnable[j]) {
-        offset[j] += minor[j] * tickLength
+      if(this.lineTickEnable[i]) {
+        offset[j] += minor[j] * Math.max(this.lineTickLength[j], 0)
       }
     }
 
