@@ -2,8 +2,6 @@
 
 module.exports = createAxes
 
-var createStateStack = require('gl-state')
-
 var createText        = require('./lib/text.js')
 var createLines       = require('./lib/lines.js')
 var createBackground  = require('./lib/background.js')
@@ -68,22 +66,6 @@ function Axes(gl) {
   this._text  = null
   this._lines = null
   this._background = createBackground(gl)
-  this._state = createStateStack(gl, [
-      gl.BLEND,
-      gl.BLEND_DST_ALPHA,
-      gl.BLEND_DST_RGB,
-      gl.BLEND_SRC_ALPHA,
-      gl.BLEND_SRC_RGB,
-      gl.BLEND_EQUATION_ALPHA,
-      gl.BLEND_EQUATION_RGB,
-      gl.CULL_FACE,
-      gl.CULL_FACE_MODE,
-      gl.DEPTH_WRITEMASK,
-      gl.DEPTH_TEST,
-      gl.DEPTH_FUNC,
-      gl.LINE_WIDTH
-    ])
-
 }
 
 var proto = Axes.prototype
@@ -233,6 +215,7 @@ i_loop:
   COLOR('backgroundColor')
 
   //Update text if necessary
+  var textUpdate = false
   if(this._text && (labelUpdate || ticksUpdate)) {
     this._text.dispose()
     this._text = null
@@ -318,9 +301,6 @@ proto.draw = function(params) {
         cubeEdges, 
         cubeAxis)
   }
-
-  //Save context state
-  this._state.push()
 
   //Set up state parameters
   var gl = this.gl
@@ -473,9 +453,6 @@ proto.draw = function(params) {
         this.labelColor[i])
     }
   }
-
-  //Restore context state
-  this._state.pop()
 }
 
 proto.dispose = function() {
