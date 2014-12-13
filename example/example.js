@@ -34,6 +34,10 @@ shell.on("gl-init", function() {
   axes = createAxes(gl, { 
     bounds: bounds
   })
+
+  axes.update({
+    bounds: [[-10,-10,-10], [10,10,10]]
+  })
 })
 
 shell.on("gl-render", function() {

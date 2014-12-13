@@ -151,6 +151,8 @@ i_loop:
 
   if(boundsChanged && this.autoTicks) {
     nextTicks = Ticks.create(this.bounds, this.tickSpacing)
+    ticksUpdate = true
+    console.log('autotick', nextTicks)
   }
 
   //Compare next ticks to previous ticks, only update if needed
@@ -216,13 +218,16 @@ i_loop:
 
   //Update text if necessary
   var textUpdate = false
-  if(this._text && (labelUpdate || ticksUpdate)) {
-    this._text.dispose()
-    this._text = null
-  }
   if(!this._text) {
     this._text = createText(
       this.gl, 
+      this.bounds,
+      this.labels,
+      this.labelFont,
+      this.ticks,
+      this.tickFont)
+  } else if(this._text && (labelUpdate || ticksUpdate)) {
+    this._text.update(
       this.bounds,
       this.labels,
       this.labelFont,
