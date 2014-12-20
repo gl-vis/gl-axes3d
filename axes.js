@@ -216,7 +216,6 @@ i_loop:
   COLOR('backgroundColor')
 
   //Update text if necessary
-  var textUpdate = false
   if(!this._text) {
     this._text = createText(
       this.gl, 
