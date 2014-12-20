@@ -152,7 +152,6 @@ i_loop:
   if(boundsChanged && this.autoTicks) {
     nextTicks = Ticks.create(this.bounds, this.tickSpacing)
     ticksUpdate = true
-    console.log('autotick', nextTicks)
   }
 
   //Compare next ticks to previous ticks, only update if needed
