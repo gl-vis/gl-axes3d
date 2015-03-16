@@ -132,8 +132,7 @@ i_loop:
     for(var i=0; i<3; ++i) {
       this.tickSpacing[i] = 0.0
     }
-  }
-  if(NUMBER('tickSpacing')) {
+  } else if(NUMBER('tickSpacing')) {
     this.autoTicks  = true
     boundsChanged   = true
   }
