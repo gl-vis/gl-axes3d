@@ -1,7 +1,7 @@
 {
-  "name": "gl-axes",
-  "version": "6.0.2",
-  "description": "Renders axes for WebGL plots",
+  "name": "gl-axes3d",
+  "version": "1.0.0",
+  "description": "3D axes for WebGL",
   "main": "axes.js",
   "directories": {
     "example": "example"
@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/mikolalysenko/gl-axes.git"
+    "url": "git://github.com/gl-vis/gl-axes3d.git"
   },
   "browserify": {
     "transform": [
@@ -50,7 +50,7 @@
   "author": "Mikola Lysenko",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mikolalysenko/gl-axes/issues"
+    "url": "https://github.com/gl-vis/gl-axes3d/issues"
   },
-  "homepage": "https://github.com/mikolalysenko/gl-axes"
+  "homepage": "https://github.com/gl-vis/gl-axes3d"
 }

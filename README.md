@@ -1,8 +1,8 @@
-gl-axes
-=======
+gl-axes3d
+=========
 Draws axes for 3D scenes:
 
-<img src=https://raw.github.com/mikolalysenko/gl-axes/master/example/axes.png>
+<img src=https://raw.github.com/gl-vis/gl-axes3d/master/example/axes.png>
 
 # Example
 
@@ -75,14 +75,14 @@ shell.on("gl-render", function() {
 # Install
 
 ```
-npm install gl-axes
+npm install gl-axes3d
 ```
 
 # API
 
 ## Constructor
 
-### `var axes = require("gl-axes")(gl[, params])`
+### `var axes = require("gl-axes3d")(gl[, params])`
 Creates an axes object.
 
 * `gl` is a WebGL context

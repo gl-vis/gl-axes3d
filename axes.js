@@ -14,6 +14,13 @@ var identity = new Float32Array([
   0, 0, 1, 0,
   0, 0, 0, 1])
 
+function copyVec3(a, b) {
+  a[0] = b[0]
+  a[1] = b[1]
+  a[2] = b[2]
+  return a
+}
+
 function Axes(gl) {
   this.gl             = gl
 
@@ -29,6 +36,11 @@ function Axes(gl) {
   this.tickAngle      = [ 0, 0, 0 ]
   this.tickColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
   this.tickPad        = [ 1, 1, 1 ]
+
+  this.lastCubeProps  = {
+    cubeEdges: [0,0,0],
+    axis:      [0,0,0]
+  }
 
   this.labels         = [ 'x', 'y', 'z' ]
   this.labelEnable    = [ true, true, true ]
@@ -242,11 +254,20 @@ i_loop:
   }
 }
 
-function computeLineOffset(i, bounds, cubeEdges, cubeAxis) {
-  var primalOffset = [0,0,0]
-  var primalMinor  = [0,0,0]
-  var dualOffset   = [0,0,0]
-  var dualMinor    = [0,0,0]
+function OffsetInfo() {
+  this.primalOffset = [0,0,0]
+  this.primalMinor  = [0,0,0]
+  this.mirrorOffset = [0,0,0]
+  this.mirrorMinor  = [0,0,0]
+}
+
+var LINE_OFFSET = [ new OffsetInfo(), new OffsetInfo(), new OffsetInfo() ]
+
+function computeLineOffset(result, i, bounds, cubeEdges, cubeAxis) {
+  var primalOffset = result.primalOffset
+  var primalMinor  = result.primalMinor
+  var dualOffset   = result.mirrorOffset
+  var dualMinor    = result.mirrorMinor
   var e = cubeEdges[i]
 
   //Calculate offsets
@@ -268,21 +289,56 @@ function computeLineOffset(i, bounds, cubeEdges, cubeAxis) {
     b[j] = bounds[1][j]
     if(cubeAxis[j] > 0) {
       c[j] = -1
+      d[j] = 0
     } else {
+      c[j] = 0
       d[j] = +1
     }
   }
-
-  return {
-    primalOffset: primalOffset,
-    primalMinor:  primalMinor,
-    mirrorOffset: dualOffset,
-    mirrorMinor:  dualMinor
-  }
 }
 
+var CUBE_ENABLE = [0,0,0]
+var DEFAULT_PARAMS = {
+  model:      identity,
+  view:       identity,
+  projection: identity
+}
+
+proto.isOpaque = function() {
+  return true
+}
+
+proto.isTransparent = function() {
+  return this.backgroundEnable[0] ||
+         this.backgroundEnable[1] ||
+         this.backgroundEnable[2]
+}
+
+proto.drawTransparent = function(params) {
+  var cubeEnable = CUBE_ENABLE
+  for(var i=0; i<3; ++i) {
+    if(this.backgroundEnable[i]) {
+      cubeEnable[i] = cubeAxis[i]
+    } else {
+      cubeEnable[i] = 0
+    }
+  }
+  this._background.draw(
+    params.model || identity, 
+    params.view || identity, 
+    params.projection || identity, 
+    this.bounds, 
+    cubeEnable,
+    this.backgroundColor)
+}
+
+
+var PRIMAL_MINOR  = [0,0,0]
+var MIRROR_MINOR  = [0,0,0]
+var PRIMAL_OFFSET = [0,0,0]
+
 proto.draw = function(params) {
-  params = params || {}
+  params = params || DEFAULT_PARAMS
 
   //Geometry for camera and axes
   var model       = params.model || identity
@@ -292,47 +348,29 @@ proto.draw = function(params) {
 
   //Unpack axis info
   var cubeParams  = getCubeProperties(model, view, projection, bounds)
-  var cubeEdges   = cubeParams.edges
+  var cubeEdges   = cubeParams.cubeEdges
   var cubeAxis    = cubeParams.axis
 
-  //Compute axis info
-  var lineOffset  = new Array(3)
   for(var i=0; i<3; ++i) {
-    lineOffset[i] = computeLineOffset(i, 
-        this.bounds, 
-        cubeEdges, 
-        cubeAxis)
+    this.lastCubeProps.cubeEdges[i] = cubeEdges[i]
+    this.lastCubeProps.axis[i] = cubeAxis[i]
+  }
+
+  //Compute axis info
+  var lineOffset  = LINE_OFFSET
+  for(var i=0; i<3; ++i) {
+    computeLineOffset(
+      LINE_OFFSET[i], 
+      i, 
+      this.bounds, 
+      cubeEdges, 
+      cubeAxis)
   }
 
   //Set up state parameters
   var gl = this.gl
-  gl.enable(gl.CULL_FACE)
-  gl.cullFace(gl.BACK)
-  gl.enable(gl.DEPTH_TEST)
-
-  //Draw background
-  gl.depthMask(false)
-  gl.enable(gl.BLEND)
-  gl.blendEquation(gl.FUNC_ADD)
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-  var cubeEnable = [ 0, 0, 0 ]
-  for(var i=0; i<3; ++i) {
-    if(this.backgroundEnable[i]) {
-      cubeEnable[i] = cubeAxis[i]
-    }
-  }
-  this._background.draw(
-    model, 
-    view, 
-    projection, 
-    this.bounds, 
-    cubeEnable,
-    this.backgroundColor)
 
   //Draw lines
-  gl.depthMask(true)
-  gl.depthFunc(gl.LEQUAL)
-  gl.disable(gl.BLEND)
   this._lines.bind(
     model,
     view,
@@ -385,8 +423,8 @@ proto.draw = function(params) {
     }
 
     //Compute minor axes
-    var primalMinor = lineOffset[i].primalMinor.slice()
-    var mirrorMinor = lineOffset[i].mirrorMinor.slice()
+    var primalMinor = copyVec3(PRIMAL_MINOR, lineOffset[i].primalMinor)
+    var mirrorMinor = copyVec3(MIRROR_MINOR, lineOffset[i].mirrorMinor)
     var tickLength  = this.lineTickLength
     for(var j=0; j<3; ++j) {
       primalMinor[j] *= tickLength[j]
@@ -412,7 +450,7 @@ proto.draw = function(params) {
   for(var i=0; i<3; ++i) {
 
     var minor      = lineOffset[i].primalMinor
-    var offset     = lineOffset[i].primalOffset.slice()
+    var offset     = copyVec3(PRIMAL_OFFSET, lineOffset[i].primalOffset)
 
     for(var j=0; j<3; ++j) {
       if(this.lineTickEnable[i]) {
