@@ -132,10 +132,9 @@ i_loop:
     for(var i=0; i<2; ++i) {
       for(var j=0; j<3; ++j) {
         if(bounds[i][j] !== this.bounds[i][j]) {
-          this.bounds   = options.bounds
           boundsChanged = true
-          break i_loop
         }
+        this.bounds[i][j] = bounds[i][j]
       }
     }
   }
