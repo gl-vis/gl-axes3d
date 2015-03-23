@@ -24,6 +24,8 @@ function copyVec3(a, b) {
 function Axes(gl) {
   this.gl             = gl
 
+  this.pixelRatio     = 1
+
   this.bounds         = [ [-10, -10, -10], 
                           [ 10,  10,  10] ]
   this.ticks          = [ [], [], [] ]
@@ -35,7 +37,7 @@ function Axes(gl) {
   this.tickSize       = [ 12, 12, 12 ]
   this.tickAngle      = [ 0, 0, 0 ]
   this.tickColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
-  this.tickPad        = [ 1, 1, 1 ]
+  this.tickPad        = [ 0.05, 0.05, 0.05 ]
 
   this.lastCubeProps  = {
     cubeEdges: [0,0,0],
@@ -48,7 +50,7 @@ function Axes(gl) {
   this.labelSize      = [ 20, 20, 20 ]
   this.labelAngle     = [ 0, 0, 0 ]
   this.labelColor     = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
-  this.labelPad       = [ 1.5, 1.5, 1.5 ]
+  this.labelPad       = [ 0.05, 0.05, 0.05 ]
 
   this.lineEnable     = [ true, true, true ]
   this.lineMirror     = [ false, false, false ]
@@ -427,8 +429,9 @@ proto.draw = function(params) {
     var mirrorMinor = copyVec3(MIRROR_MINOR, lineOffset[i].mirrorMinor)
     var tickLength  = this.lineTickLength
     for(var j=0; j<3; ++j) {
-      primalMinor[j] *= tickLength[j]
-      mirrorMinor[j] *= tickLength[j]
+      var scaleFactor = 1.0 / model[5*j]
+      primalMinor[j] *= tickLength[j] * scaleFactor
+      mirrorMinor[j] *= tickLength[j] * scaleFactor
     }
 
     //Draw axis line ticks
@@ -445,7 +448,8 @@ proto.draw = function(params) {
   this._text.bind(
     model,
     view,
-    projection)
+    projection,
+    this.pixelRatio)
 
   for(var i=0; i<3; ++i) {
 
@@ -463,7 +467,7 @@ proto.draw = function(params) {
       
       //Add tick padding
       for(var j=0; j<3; ++j) {
-        offset[j] += minor[j] * this.tickPad[j]
+        offset[j] += minor[j] * this.tickPad[j] / model[5*j]
       }
 
       //Draw axis
@@ -480,7 +484,7 @@ proto.draw = function(params) {
 
       //Add label padding
       for(var j=0; j<3; ++j) {
-        offset[j] += minor[j] * this.labelPad[j]
+        offset[j] += minor[j] * this.labelPad[j] / model[5*j]
       }
       offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
 

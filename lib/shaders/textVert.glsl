@@ -2,12 +2,12 @@ attribute vec3 position;
 
 uniform mat4 model, view, projection;
 uniform vec3 offset, axis;
-uniform float scale, angle;
+uniform float scale, angle, pixelScale;
 uniform vec2 resolution;
 
 void main() {  
   //Compute plane offset
-  vec2 planeCoord = position.xy;
+  vec2 planeCoord = position.xy * pixelScale;
   mat2 planeXform = scale * mat2(cos(angle), sin(angle),
                                 -sin(angle), cos(angle));
   vec2 viewOffset = 2.0 * planeXform * planeCoord / resolution;
@@ -16,7 +16,7 @@ void main() {
   float axisDistance = position.z;
   vec3 dataPosition = axisDistance * axis + offset;
   vec4 worldPosition = model * vec4(dataPosition, 1);
-
+  
   //Compute clip position
   vec4 viewPosition = view * worldPosition;
   vec4 clipPosition = projection * viewPosition;
