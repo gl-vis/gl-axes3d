@@ -362,11 +362,12 @@ proto.draw = function(params) {
       cubeEnable[i] = 0
     }
   }
+
   this._background.draw(
-    params.model || identity, 
-    params.view || identity, 
-    params.projection || identity, 
-    this.bounds, 
+    model, 
+    view, 
+    projection, 
+    bounds, 
     cubeEnable,
     this.backgroundColor)
 

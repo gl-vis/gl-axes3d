@@ -11,7 +11,6 @@ void main() {
   if(dot(normal, enable) > 0.0) {
     vec3 nPosition = mix(bounds[0], bounds[1], 0.5 * (position + 1.0));
     gl_Position = projection * view * model * vec4(nPosition, 1.0);
-    //gl_Position = vec4(proj.xyz/proj.w * vec3(1, 1, 1.000001), 1);
   } else {
     gl_Position = vec4(0,0,0,0);
   }
