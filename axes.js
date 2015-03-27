@@ -310,28 +310,10 @@ proto.isOpaque = function() {
 }
 
 proto.isTransparent = function() {
-  return this.backgroundEnable[0] ||
-         this.backgroundEnable[1] ||
-         this.backgroundEnable[2]
+  return false
 }
 
-proto.drawTransparent = function(params) {
-  var cubeEnable = CUBE_ENABLE
-  for(var i=0; i<3; ++i) {
-    if(this.backgroundEnable[i]) {
-      cubeEnable[i] = cubeAxis[i]
-    } else {
-      cubeEnable[i] = 0
-    }
-  }
-  this._background.draw(
-    params.model || identity, 
-    params.view || identity, 
-    params.projection || identity, 
-    this.bounds, 
-    cubeEnable,
-    this.backgroundColor)
-}
+proto.drawTransparent = function(params) {}
 
 
 var PRIMAL_MINOR  = [0,0,0]
@@ -370,6 +352,23 @@ proto.draw = function(params) {
 
   //Set up state parameters
   var gl = this.gl
+
+  //Draw background first
+  var cubeEnable = CUBE_ENABLE
+  for(var i=0; i<3; ++i) {
+    if(this.backgroundEnable[i]) {
+      cubeEnable[i] = cubeAxis[i]
+    } else {
+      cubeEnable[i] = 0
+    }
+  }
+  this._background.draw(
+    params.model || identity, 
+    params.view || identity, 
+    params.projection || identity, 
+    this.bounds, 
+    cubeEnable,
+    this.backgroundColor)
 
   //Draw lines
   this._lines.bind(
