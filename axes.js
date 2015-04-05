@@ -494,7 +494,7 @@ proto.draw = function(params) {
       for(var j=0; j<3; ++j) {
         offset[j] += pixelScaleF * minor[j] * this.labelPad[j] / model[5*j]
       }
-      offset[i] += 0.5 * (bounds[0][i] + bounds[1][i]) * pixelScaleF
+      offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
 
       //Draw axis
       this._text.drawLabel(
