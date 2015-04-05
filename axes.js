@@ -37,7 +37,7 @@ function Axes(gl) {
   this.tickSize       = [ 12, 12, 12 ]
   this.tickAngle      = [ 0, 0, 0 ]
   this.tickColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
-  this.tickPad        = [ 0.05, 0.05, 0.05 ]
+  this.tickPad        = [ 10, 10, 10 ]
 
   this.lastCubeProps  = {
     cubeEdges: [0,0,0],
@@ -50,7 +50,7 @@ function Axes(gl) {
   this.labelSize      = [ 20, 20, 20 ]
   this.labelAngle     = [ 0, 0, 0 ]
   this.labelColor     = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
-  this.labelPad       = [ 0.05, 0.05, 0.05 ]
+  this.labelPad       = [ 10, 10, 10 ]
 
   this.lineEnable     = [ true, true, true ]
   this.lineMirror     = [ false, false, false ]
@@ -323,6 +323,8 @@ var PRIMAL_OFFSET = [0,0,0]
 proto.draw = function(params) {
   params = params || DEFAULT_PARAMS
 
+  var gl = this.gl
+
   //Geometry for camera and axes
   var model       = params.model || identity
   var view        = params.view || identity
@@ -333,6 +335,13 @@ proto.draw = function(params) {
   var cubeParams  = getCubeProperties(model, view, projection, bounds)
   var cubeEdges   = cubeParams.cubeEdges
   var cubeAxis    = cubeParams.axis
+
+  var cx = view[12]
+  var cy = view[13]
+  var cz = view[14]
+  var cw = view[15]
+  
+  var pixelScaleF = this.pixelRatio * (projection[3]*cx + projection[7]*cy + projection[11]*cz + projection[15]*cw) / gl.drawingBufferHeight
 
   for(var i=0; i<3; ++i) {
     this.lastCubeProps.cubeEdges[i] = cubeEdges[i]
@@ -428,7 +437,7 @@ proto.draw = function(params) {
     var mirrorMinor = copyVec3(MIRROR_MINOR, lineOffset[i].mirrorMinor)
     var tickLength  = this.lineTickLength
     for(var j=0; j<3; ++j) {
-      var scaleFactor = 1.0 / model[5*j]
+      var scaleFactor = pixelScaleF / model[5*j]
       primalMinor[j] *= tickLength[j] * scaleFactor
       mirrorMinor[j] *= tickLength[j] * scaleFactor
     }
@@ -457,7 +466,7 @@ proto.draw = function(params) {
 
     for(var j=0; j<3; ++j) {
       if(this.lineTickEnable[i]) {
-        offset[j] += minor[j] * Math.max(this.lineTickLength[j], 0)
+        offset[j] += pixelScaleF * minor[j] * Math.max(this.lineTickLength[j], 0)
       }
     }
 
@@ -466,7 +475,7 @@ proto.draw = function(params) {
       
       //Add tick padding
       for(var j=0; j<3; ++j) {
-        offset[j] += minor[j] * this.tickPad[j] / model[5*j]
+        offset[j] += pixelScaleF * minor[j] * this.tickPad[j] / model[5*j]
       }
 
       //Draw axis
@@ -483,9 +492,9 @@ proto.draw = function(params) {
 
       //Add label padding
       for(var j=0; j<3; ++j) {
-        offset[j] += minor[j] * this.labelPad[j] / model[5*j]
+        offset[j] += pixelScaleF * minor[j] * this.labelPad[j] / model[5*j]
       }
-      offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
+      offset[i] += 0.5 * (bounds[0][i] + bounds[1][i]) * pixelScaleF
 
       //Draw axis
       this._text.drawLabel(
