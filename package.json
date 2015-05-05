@@ -18,7 +18,7 @@
     "glslify": "^1.2.0",
     "robust-orientation": "^1.1.3",
     "split-polygon": "^1.0.0",
-    "vectorize-text": "^2.0.2"
+    "vectorize-text": "^3.0.0"
   },
   "devDependencies": {
     "game-shell-orbit-camera": "^0.0.0",
