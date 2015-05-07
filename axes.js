@@ -26,7 +26,7 @@ function Axes(gl) {
 
   this.pixelRatio     = 1
 
-  this.bounds         = [ [-10, -10, -10], 
+  this.bounds         = [ [-10, -10, -10],
                           [ 10,  10,  10] ]
   this.ticks          = [ [], [], [] ]
   this.autoTicks      = true
@@ -72,8 +72,8 @@ function Axes(gl) {
   this.zeroLineWidth  = [ 2, 2, 2 ]
 
   this.backgroundEnable = [ false, false, false ]
-  this.backgroundColor  = [ [0.8, 0.8, 0.8, 0.5], 
-                            [0.8, 0.8, 0.8, 0.5], 
+  this.backgroundColor  = [ [0.8, 0.8, 0.8, 0.5],
+                            [0.8, 0.8, 0.8, 0.5],
                             [0.8, 0.8, 0.8, 0.5] ]
 
   this._firstInit = true
@@ -230,7 +230,7 @@ i_loop:
   //Update text if necessary
   if(!this._text) {
     this._text = createText(
-      this.gl, 
+      this.gl,
       this.bounds,
       this.labels,
       this.labelFont,
@@ -244,7 +244,7 @@ i_loop:
       this.ticks,
       this.tickFont)
   }
-  
+
   //Update lines if necessary
   if(this._lines && ticksUpdate) {
     this._lines.dispose()
@@ -276,7 +276,7 @@ function computeLineOffset(result, i, bounds, cubeEdges, cubeAxis) {
     if(i === j) {
       continue
     }
-    var a = primalOffset, 
+    var a = primalOffset,
         b = dualOffset,
         c = primalMinor,
         d = dualMinor
@@ -340,7 +340,7 @@ proto.draw = function(params) {
   var cy = view[13]
   var cz = view[14]
   var cw = view[15]
-  
+
   var pixelScaleF = this.pixelRatio * (projection[3]*cx + projection[7]*cy + projection[11]*cz + projection[15]*cw) / gl.drawingBufferHeight
 
   for(var i=0; i<3; ++i) {
@@ -352,10 +352,10 @@ proto.draw = function(params) {
   var lineOffset  = LINE_OFFSET
   for(var i=0; i<3; ++i) {
     computeLineOffset(
-      LINE_OFFSET[i], 
-      i, 
-      this.bounds, 
-      cubeEdges, 
+      LINE_OFFSET[i],
+      i,
+      this.bounds,
+      cubeEdges,
       cubeAxis)
   }
 
@@ -373,10 +373,10 @@ proto.draw = function(params) {
   }
 
   this._background.draw(
-    model, 
-    view, 
-    projection, 
-    bounds, 
+    model,
+    view,
+    projection,
+    bounds,
     cubeEnable,
     this.backgroundColor)
 
@@ -401,8 +401,7 @@ proto.draw = function(params) {
       var u = (i + 1 + j) % 3
       var v = (i + 1 + (j^1)) % 3
       if(this.gridEnable[u]) {
-        gl.lineWidth(this.gridWidth[u])
-        this._lines.drawGrid(u, v, this.bounds, x, this.gridColor[u])
+        this._lines.drawGrid(u, v, this.bounds, x, this.gridColor[u], this.gridWidth[u]*this.pixelRatio)
       }
     }
 
@@ -413,8 +412,7 @@ proto.draw = function(params) {
       if(this.zeroEnable[v]) {
         //Check if zero line in bounds
         if(bounds[0][v] <= 0 && bounds[1][v] >= 0) {
-          gl.lineWidth(this.zeroLineWidth[v])
-          this._lines.drawZero(u, this.bounds, x, this.zeroLineColor[v])
+          this._lines.drawZero(u, v, this.bounds, x, this.zeroLineColor[v], this.zeroLineWidth[v]*this.pixelRatio)
         }
       }
     }
@@ -424,18 +422,18 @@ proto.draw = function(params) {
   for(var i=0; i<3; ++i) {
 
     //Draw axis lines
-    gl.lineWidth(this.lineWidth[i])
     if(this.lineEnable[i]) {
-      this._lines.drawAxisLine(i, this.bounds, lineOffset[i].primalOffset, this.lineColor[i])
+      this._lines.drawAxisLine(i, this.bounds, lineOffset[i].primalOffset, this.lineColor[i], this.lineWidth[i]*this.pixelRatio)
     }
     if(this.lineMirror[i]) {
-      this._lines.drawAxisLine(i, this.bounds, lineOffset[i].mirrorOffset, this.lineColor[i])
+      this._lines.drawAxisLine(i, this.bounds, lineOffset[i].mirrorOffset, this.lineColor[i], this.lineWidth[i]*this.pixelRatio)
     }
 
     //Compute minor axes
     var primalMinor = copyVec3(PRIMAL_MINOR, lineOffset[i].primalMinor)
     var mirrorMinor = copyVec3(MIRROR_MINOR, lineOffset[i].mirrorMinor)
     var tickLength  = this.lineTickLength
+    var op = 0
     for(var j=0; j<3; ++j) {
       var scaleFactor = pixelScaleF / model[5*j]
       primalMinor[j] *= tickLength[j] * scaleFactor
@@ -443,12 +441,11 @@ proto.draw = function(params) {
     }
 
     //Draw axis line ticks
-    gl.lineWidth(this.lineTickWidth[i])
     if(this.lineTickEnable[i]) {
-      this._lines.drawAxisTicks(i, lineOffset[i].primalOffset, primalMinor, this.lineTickColor[i])
+      this._lines.drawAxisTicks(i, lineOffset[i].primalOffset, primalMinor, this.lineTickColor[i], this.lineTickWidth[i]*this.pixelRatio)
     }
     if(this.lineTickMirror[i]) {
-      this._lines.drawAxisTicks(i, lineOffset[i].mirrorOffset, mirrorMinor, this.lineTickColor[i])
+      this._lines.drawAxisTicks(i, lineOffset[i].mirrorOffset, mirrorMinor, this.lineTickColor[i], this.lineTickWidth[i]*this.pixelRatio)
     }
   }
 
@@ -466,13 +463,13 @@ proto.draw = function(params) {
 
     for(var j=0; j<3; ++j) {
       if(this.lineTickEnable[i]) {
-        offset[j] += pixelScaleF * minor[j] * Math.max(this.lineTickLength[j], 0)
+        offset[j] += pixelScaleF * minor[j] * Math.max(this.lineTickLength[j], 0)  / model[5*j]
       }
     }
 
     //Draw tick text
     if(this.tickEnable[i]) {
-      
+
       //Add tick padding
       for(var j=0; j<3; ++j) {
         offset[j] += pixelScaleF * minor[j] * this.tickPad[j] / model[5*j]
@@ -480,8 +477,8 @@ proto.draw = function(params) {
 
       //Draw axis
       this._text.drawTicks(
-        i, 
-        this.tickSize[i], 
+        i,
+        this.tickSize[i],
         this.tickAngle[i],
         offset,
         this.tickColor[i])
@@ -498,8 +495,8 @@ proto.draw = function(params) {
 
       //Draw axis
       this._text.drawLabel(
-        i, 
-        this.labelSize[i], 
+        i,
+        this.labelSize[i],
         this.labelAngle[i],
         offset,
         this.labelColor[i])
@@ -511,6 +508,10 @@ proto.dispose = function() {
   this._text.dispose()
   this._lines.dispose()
   this._background.dispose()
+  this._lines = null
+  this._text = null
+  this._background = null
+  this.gl = null
 }
 
 function createAxes(gl, options) {
