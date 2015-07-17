@@ -1,6 +1,6 @@
 {
   "name": "gl-axes3d",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "3D axes for WebGL",
   "main": "axes.js",
   "directories": {
@@ -21,8 +21,7 @@
     "split-polygon": "^1.0.0",
     "vectorize-text": "^3.0.0"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "beefy --open --live example/example.js"
