@@ -22,12 +22,6 @@
     "vectorize-text": "^3.0.0"
   },
   "devDependencies": {
-    "game-shell-orbit-camera": "^0.0.0",
-    "gl-now": "^1.0.0",
-    "gl-simplicial-complex": "^1.0.0",
-    "isosurface": "^0.1.0",
-    "beefy": "^1.1.0",
-    "browserify": "^2.36.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
