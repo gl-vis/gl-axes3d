@@ -448,6 +448,7 @@ proto.draw = function(params) {
       this._lines.drawAxisTicks(i, lineOffset[i].mirrorOffset, mirrorMinor, this.lineTickColor[i], this.lineTickWidth[i]*this.pixelRatio)
     }
   }
+  this._lines.unbind()
 
   //Draw text sprites
   this._text.bind(
@@ -502,6 +503,8 @@ proto.draw = function(params) {
         this.labelColor[i])
     }
   }
+
+  this._text.unbind()
 }
 
 proto.dispose = function() {
