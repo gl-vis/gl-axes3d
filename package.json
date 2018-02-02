@@ -16,7 +16,7 @@
     "gl-state": "^1.0.0",
     "gl-vao": "^1.1.1",
     "gl-vec4": "^1.0.1",
-    "glslify": "^2.1.2",
+    "glslify": "^6.1.0",
     "robust-orientation": "^1.1.3",
     "split-polygon": "^1.0.0",
     "vectorize-text": "^3.0.0"
