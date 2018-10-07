@@ -457,8 +457,6 @@ proto.draw = function(params) {
     projection,
     this.pixelRatio)
 
-  var allDirections = [[1,0,0],[0,1,0],[0,0,1]];
-
   for(var i=0; i<3; ++i) {
 
     var minor      = lineOffset[i].primalMinor
@@ -473,9 +471,11 @@ proto.draw = function(params) {
     //Draw tick text
     if(this.tickEnable[i]) {
 
+      var axis = [0,0,0]
       //Add tick padding
       for(var j=0; j<3; ++j) {
         offset[j] += pixelScaleF * minor[j] * this.tickPad[j] / model[5*j]
+        axis[i] = 1
       }
 
       //Draw axis
@@ -485,7 +485,7 @@ proto.draw = function(params) {
         this.tickAngle[i],
         offset,
         this.tickColor[i],
-        [0,0,0])
+        axis)
     }
 
     //Draw labels
@@ -497,9 +497,9 @@ proto.draw = function(params) {
       }
       offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
 
-      var direction = [0,0,0];
+      var axis = [0,0,0]
       if(this.labels[i].length > 4) { // for large label axis enable alignment to axis
-        direction = allDirections[i];
+        axis[i]  = 1
       }
 
       //Draw axis
@@ -509,7 +509,7 @@ proto.draw = function(params) {
         this.labelAngle[i],
         offset,
         this.labelColor[i],
-        direction)
+        axis)
     }
   }
 
