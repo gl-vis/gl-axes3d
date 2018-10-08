@@ -471,14 +471,13 @@ proto.draw = function(params) {
     //Draw tick text
     if(this.tickEnable[i]) {
 
-      var axis = [0,0,0]
       //Add tick padding
       for(var j=0; j<3; ++j) {
         offset[j] += pixelScaleF * minor[j] * this.tickPad[j] / model[5*j]
-        axis[i] = 1
       }
-      
-      var alignment = [0,0,0] // i.e. no alignmnet for ticks
+
+      var axis = [0,0,0]
+      axis[i] = 1
 
       //Draw axis
       this._text.drawTicks(
@@ -487,8 +486,8 @@ proto.draw = function(params) {
         this.tickAngle[i],
         offset,
         this.tickColor[i],
-        axis, 
-        alignment)
+        axis,
+        [0,0,0])
     }
 
     //Draw labels
@@ -500,12 +499,10 @@ proto.draw = function(params) {
       }
       offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
 
-      var axis = [0,0,0]
+      var alignment = [0,0,0]
       if(this.labels[i].length > 4) { // for large label axis enable alignment to axis
-        axis[i]  = 1
+        alignment[i]  = 1
       }
-      
-      var alignment = [axis[0], axis[1], axis[2]] // align with axis
 
       //Draw axis
       this._text.drawLabel(
@@ -514,7 +511,7 @@ proto.draw = function(params) {
         this.labelAngle[i],
         offset,
         this.labelColor[i],
-        axis, 
+        [0,0,0],
         alignment)
     }
   }
