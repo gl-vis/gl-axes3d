@@ -477,6 +477,8 @@ proto.draw = function(params) {
         offset[j] += pixelScaleF * minor[j] * this.tickPad[j] / model[5*j]
         axis[i] = 1
       }
+      
+      var alignment = [0,0,0] // i.e. no alignmnet for ticks
 
       //Draw axis
       this._text.drawTicks(
@@ -485,7 +487,8 @@ proto.draw = function(params) {
         this.tickAngle[i],
         offset,
         this.tickColor[i],
-        axis)
+        axis, 
+        alignment)
     }
 
     //Draw labels
@@ -501,6 +504,8 @@ proto.draw = function(params) {
       if(this.labels[i].length > 4) { // for large label axis enable alignment to axis
         axis[i]  = 1
       }
+      
+      var alignment = [axis[0], axis[1], axis[2]] // align with axis
 
       //Draw axis
       this._text.drawLabel(
@@ -509,7 +514,8 @@ proto.draw = function(params) {
         this.labelAngle[i],
         offset,
         this.labelColor[i],
-        axis)
+        axis, 
+        alignment)
     }
   }
 

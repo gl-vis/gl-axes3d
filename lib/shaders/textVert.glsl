@@ -1,7 +1,7 @@
 attribute vec3 position;
 
 uniform mat4 model, view, projection;
-uniform vec3 offset, axis;
+uniform vec3 offset, axis, alignment;
 uniform float scale, angle, pixelScale;
 uniform vec2 resolution;
 
@@ -20,12 +20,12 @@ void main() {
 
   float axisAngle = 0.0;
 
-  if ((axis.x != 0.0) ||
-      (axis.y != 0.0) ||
-      (axis.z != 0.0)) {
+  if ((alignment.x != 0.0) ||
+      (alignment.y != 0.0) ||
+      (alignment.z != 0.0)) {
 
-    vec3 endPoint   = project(-axis);
-    vec3 startPoint = project( axis);
+    vec3 endPoint   = project(-alignment);
+    vec3 startPoint = project( alignment);
 
     axisAngle = atan(
       (endPoint.y - startPoint.y),
@@ -36,12 +36,11 @@ void main() {
     if (axisAngle < 0.0) axisAngle += 2.0 * PI;
 
     // logic for horizontal or vertical align
-    if (axisAngle < 0.75 * PI) axisAngle = 0.0;
-    else if (axisAngle < 0.75 * PI) axisAngle = 0.5 * PI;
-    else if (axisAngle < 1.25 * PI) axisAngle = 0.0;
-    else if (axisAngle < 1.75 * PI) axisAngle = 0.5 * PI;
+    if (axisAngle < 0.33 * PI) axisAngle = 0.0;
+    else if (axisAngle < 0.66 * PI) axisAngle = 0.5 * PI;
+    else if (axisAngle < 1.33 * PI) axisAngle = 0.0;
+    else if (axisAngle < 1.66 * PI) axisAngle = 0.5 * PI;
     else axisAngle = 0.0;
-
   }
 
   //Compute plane offset
