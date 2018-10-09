@@ -503,6 +503,9 @@ proto.draw = function(params) {
       if(this.labels[i].length > 4) { // for large label axis enable alignment to axis
         alignment[i]  = 1
       }
+      
+      var axis = [0,0,0]
+      axis[i] = 1      
 
       //Draw axis
       this._text.drawLabel(
@@ -511,7 +514,7 @@ proto.draw = function(params) {
         this.labelAngle[i],
         offset,
         this.labelColor[i],
-        [0,0,0],
+        axis,
         alignment)
     }
   }

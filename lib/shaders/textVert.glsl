@@ -10,7 +10,46 @@ vec3 project(vec3 p) {
   return pp.xyz / max(pp.w, 0.0001);
 }
 
-float PI = 3.141592;
+const float PI = 3.141592;
+const float TWO_PI = 2.0 * PI;
+const float HALF_PI = 0.5 * PI;
+const float ONE_AND_HALF_PI = 1.5 * PI;
+
+float positive_angle(float a) {
+  if (a < 0.0) return a + TWO_PI;
+  return a;
+}
+
+float look_upwards(float a) {
+  float b = positive_angle(a);
+  if ((b > HALF_PI) && (b < ONE_AND_HALF_PI)) return b - PI;
+  return b;
+}
+
+float look_horizontal_or_vertical(float a, float ratio) {
+  // ratio controls the ratio between being horizontal to (vertical + horizontal)
+  // if ratio is set to 0.5 then it is 50%, 50%.
+  // when using a higher ratio e.g. 0.75 the result would
+  // likely be more horizontal than vertical.
+
+  float b = positive_angle(a);
+       if (b < (      ratio) * HALF_PI) return 0.0;
+  else if (b < (2.0 - ratio) * HALF_PI) return -HALF_PI;
+  else if (b < (2.0 + ratio) * HALF_PI) return 0.0;
+  else if (b < (4.0 - ratio) * HALF_PI) return HALF_PI; //HALF_PI;
+  return 0.0;
+}
+
+float roundTo(float a, float b) {
+  return float(b * floor((a + 0.5 * b) / b));
+}
+
+float look_round_n_directions(float a, int n) {
+  float b = positive_angle(a);
+  float div = TWO_PI / float(n);
+  float c = roundTo(b, div);
+  return look_upwards(c);
+}
 
 void main() {
 
@@ -18,38 +57,40 @@ void main() {
   float axisDistance = position.z;
   vec3 dataPosition = axisDistance * axis + offset;
 
-  float axisAngle = 0.0;
+  float clipAngle = 0.0;
 
   if ((alignment.x != 0.0) ||
       (alignment.y != 0.0) ||
       (alignment.z != 0.0)) {
 
-    vec3 endPoint   = project(-alignment);
-    vec3 startPoint = project( alignment);
+    vec3 startPoint = project(dataPosition);
+    vec3 endPoint   = project(dataPosition + alignment);
 
-    axisAngle = atan(
+    clipAngle = atan(
       (endPoint.y - startPoint.y),
       (endPoint.x - startPoint.x)
     );
 
-    // force positive angles
-    if (axisAngle < 0.0) axisAngle += 2.0 * PI;
+    // option 1: use free angle, but flip when reversed
+    //clipAngle = look_upwards(clipAngle);
 
-    // logic for horizontal or vertical align
-    if (axisAngle < 0.33 * PI) axisAngle = 0.0;
-    else if (axisAngle < 0.66 * PI) axisAngle = 0.5 * PI;
-    else if (axisAngle < 1.33 * PI) axisAngle = 0.0;
-    else if (axisAngle < 1.66 * PI) axisAngle = 0.5 * PI;
-    else axisAngle = 0.0;
+    // option 2: horizontal or vertical
+    clipAngle = look_horizontal_or_vertical(clipAngle, 0.8); // 0.8 here means: increase the chance of horizontals
+
+    // option 3: round to n directions
+    //clipAngle = look_round_n_directions(clipAngle, 12); // 12 here means use 8 direction steps
   }
 
   //Compute plane offset
   vec2 planeCoord = position.xy * pixelScale;
 
-  float totalAngle = angle + axisAngle;
+  float totalAngle = angle + clipAngle;
 
-  mat2 planeXform = scale * mat2(cos(totalAngle), sin(totalAngle),
-                                -sin(totalAngle), cos(totalAngle));
+  mat2 planeXform = scale * mat2(
+     cos(totalAngle), sin(totalAngle),
+    -sin(totalAngle), cos(totalAngle)
+  );
+
   vec2 viewOffset = 2.0 * planeXform * planeCoord / resolution;
 
   //Compute clip position
