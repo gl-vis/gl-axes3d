@@ -51,7 +51,7 @@ float look_round_n_directions(float a, int n) {
   return look_upwards(c);
 }
 
-int alignOpt = 2; // from {-1, 0, 1, 2, 3, ..., n}
+int alignOpt = 1; // from {-1, 0, 1, 2, 3, ..., n}
 
 float applyAlignOption(float rawAngle) {
 
