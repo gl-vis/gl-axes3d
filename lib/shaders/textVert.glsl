@@ -1,7 +1,7 @@
 attribute vec3 position;
 
 uniform mat4 model, view, projection;
-uniform vec3 offset, axis, alignment;
+uniform vec3 offset, axis, alignDir, alignPos;
 uniform float scale, angle, pixelScale;
 uniform vec2 resolution;
 
@@ -36,7 +36,7 @@ float look_horizontal_or_vertical(float a, float ratio) {
        if (b < (      ratio) * HALF_PI) return 0.0;
   else if (b < (2.0 - ratio) * HALF_PI) return -HALF_PI;
   else if (b < (2.0 + ratio) * HALF_PI) return 0.0;
-  else if (b < (4.0 - ratio) * HALF_PI) return HALF_PI; //HALF_PI;
+  else if (b < (4.0 - ratio) * HALF_PI) return HALF_PI;
   return 0.0;
 }
 
@@ -51,6 +51,28 @@ float look_round_n_directions(float a, int n) {
   return look_upwards(c);
 }
 
+int alignOpt = 2; // from {-1, 0, 1, 2, 3, ..., n}
+
+float applyAlignOption(float rawAngle) {
+
+  if (alignOpt == -1) {
+    // useful for backward compatibility, all texts remains horizontal
+    return 0.0;
+  } else if (alignOpt == 0) {
+    // use the raw angle as calculated by atan
+    return rawAngle;
+  } else if (alignOpt == 1) {
+    // option 1: use free angle, but flip when reversed
+    return look_upwards(rawAngle);
+  } else if (alignOpt == 2) {
+    // option 2: horizontal or vertical
+    return look_horizontal_or_vertical(rawAngle, 0.8); // 0.8 here means: increase the chance of getting horizontal labels
+  }
+
+  // option 3-n: round to n directions
+  return look_round_n_directions(rawAngle, alignOpt);
+}
+
 void main() {
 
   //Compute world offset
@@ -59,27 +81,23 @@ void main() {
 
   float clipAngle = 0.0;
 
-  if ((alignment.x != 0.0) ||
-      (alignment.y != 0.0) ||
-      (alignment.z != 0.0)) {
+  if ((alignDir.x != 0.0) ||
+      (alignDir.y != 0.0) ||
+      (alignDir.z != 0.0)) {
 
-    vec3 startPoint = project(dataPosition);
-    vec3 endPoint   = project(dataPosition + alignment);
+    vec3 REF = alignPos + offset;
 
-    clipAngle = atan(
-      (endPoint.y - startPoint.y),
-      (endPoint.x - startPoint.x)
+    vec3 startPoint = project(REF);
+    vec3 endPoint   = project(REF + alignDir);
+
+    clipAngle = applyAlignOption(
+      atan(
+        (endPoint.y - startPoint.y),
+        (endPoint.x - startPoint.x)
+      )
     );
-
-    // option 1: use free angle, but flip when reversed
-    //clipAngle = look_upwards(clipAngle);
-
-    // option 2: horizontal or vertical
-    clipAngle = look_horizontal_or_vertical(clipAngle, 0.8); // 0.8 here means: increase the chance of horizontals
-
-    // option 3: round to n directions
-    //clipAngle = look_round_n_directions(clipAngle, 12); // 12 here means use 8 direction steps
   }
+
 
   //Compute plane offset
   vec2 planeCoord = position.xy * pixelScale;

@@ -487,6 +487,7 @@ proto.draw = function(params) {
         offset,
         this.tickColor[i],
         axis,
+        [0,0,0],
         [0,0,0])
     }
 
@@ -499,13 +500,13 @@ proto.draw = function(params) {
       }
       offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
 
-      var alignment = [0,0,0]
-      if(this.labels[i].length > 4) { // for large label axis enable alignment to axis
-        alignment[i]  = 1
+      var alignDir = [0,0,0]
+      if(this.labels[i].length > 4) { // for large label axis enable alignDir to axis
+        alignDir[i]  = 1
       }
-      
-      var axis = [0,0,0]
-      axis[i] = 1      
+
+      var alignPos = [0,0,0]
+      alignPos[i] = 1
 
       //Draw axis
       this._text.drawLabel(
@@ -514,8 +515,9 @@ proto.draw = function(params) {
         this.labelAngle[i],
         offset,
         this.labelColor[i],
-        axis,
-        alignment)
+        [0,0,0],
+        alignDir,
+        alignPos)
     }
   }
 
