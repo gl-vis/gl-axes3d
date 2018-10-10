@@ -495,7 +495,6 @@ proto.draw = function(params) {
         this.tickColor[i],
         axis,
         alignDir,
-        [0,0,0],
         alignOpt)
     }
 
@@ -513,9 +512,6 @@ proto.draw = function(params) {
         alignDir[i]  = 1
       }
 
-      var alignPos = [0,0,0]
-      alignPos[i] = 1
-
       //Draw axis
       this._text.drawLabel(
         i,
@@ -525,7 +521,6 @@ proto.draw = function(params) {
         this.labelColor[i],
         [0,0,0],
         alignDir,
-        alignPos,
         alignOpt)
     }
   }

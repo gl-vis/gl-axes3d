@@ -1,7 +1,7 @@
 attribute vec3 position;
 
 uniform mat4 model, view, projection;
-uniform vec3 offset, axis, alignDir, alignPos, alignOpt;
+uniform vec3 offset, axis, alignDir, alignOpt;
 uniform float scale, angle, pixelScale;
 uniform vec2 resolution;
 
@@ -85,16 +85,16 @@ void main() {
       (alignDir.y != 0.0) ||
       (alignDir.z != 0.0)) {
 
-    vec3 REF = alignPos + offset;
+    vec3 REF = dataPosition;
 
     vec3 startPoint = project(REF);
     vec3 endPoint   = project(REF + alignDir);
 
     clipAngle = applyAlignOption(
-      angle + // user defined attribute
+      angle + // i.e. user defined attributes for each tick
       atan(
-        (endPoint.y - startPoint.y),
-        (endPoint.x - startPoint.x)
+        (endPoint.y - startPoint.y) * resolution.y,
+        (endPoint.x - startPoint.x) * resolution.x
       )
     );
   }
