@@ -1,7 +1,8 @@
 attribute vec3 position;
 
 uniform mat4 model, view, projection;
-uniform vec3 offset, axis, alignDir, alignOpt;
+uniform vec3 offset, axis;
+uniform vec4 alignDir;
 uniform float scale, angle, pixelScale;
 uniform vec2 resolution;
 
@@ -51,7 +52,7 @@ float look_round_n_directions(float a, int n) {
   return look_upwards(c);
 }
 
-int option = int(floor(alignOpt.z + 0.001));
+int option = int(floor(alignDir.w + 0.001));
 
 float applyAlignOption(float rawAngle) {
 
@@ -73,25 +74,21 @@ float applyAlignOption(float rawAngle) {
   return look_round_n_directions(rawAngle, option);
 }
 
+bool enableAlign = (alignDir.x != 0.0) || (alignDir.y != 0.0) || (alignDir.z != 0.0);
+
 void main() {
 
   //Compute world offset
   float axisDistance = position.z;
   vec3 dataPosition = axisDistance * axis + offset;
 
-  float clipAngle = 0.0;
+  float clipAngle = angle; // i.e. user defined attributes for each tick
 
-  if ((alignDir.x != 0.0) ||
-      (alignDir.y != 0.0) ||
-      (alignDir.z != 0.0)) {
-
-    vec3 REF = dataPosition;
-
-    vec3 startPoint = project(REF);
-    vec3 endPoint   = project(REF + alignDir);
+  if (enableAlign) {
+    vec3 startPoint = project(dataPosition);
+    vec3 endPoint   = project(dataPosition + alignDir.xyz);
 
     clipAngle = applyAlignOption(
-      angle + // i.e. user defined attributes for each tick
       atan(
         (endPoint.y - startPoint.y) * resolution.y,
         (endPoint.x - startPoint.x) * resolution.x
