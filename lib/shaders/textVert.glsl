@@ -1,7 +1,7 @@
 attribute vec3 position;
 
 uniform mat4 model, view, projection;
-uniform vec3 offset, axis, alignDir, alignPos;
+uniform vec3 offset, axis, alignDir, alignPos, alignOpt;
 uniform float scale, angle, pixelScale;
 uniform vec2 resolution;
 
@@ -51,26 +51,26 @@ float look_round_n_directions(float a, int n) {
   return look_upwards(c);
 }
 
-int alignOpt = 1; // from {-1, 0, 1, 2, 3, ..., n}
+int option = int(floor(alignOpt.z + 0.001));
 
 float applyAlignOption(float rawAngle) {
 
-  if (alignOpt == -1) {
+  if (option == -1) {
     // useful for backward compatibility, all texts remains horizontal
     return 0.0;
-  } else if (alignOpt == 0) {
+  } else if (option == 0) {
     // use the raw angle as calculated by atan
     return rawAngle;
-  } else if (alignOpt == 1) {
+  } else if (option == 1) {
     // option 1: use free angle, but flip when reversed
     return look_upwards(rawAngle);
-  } else if (alignOpt == 2) {
+  } else if (option == 2) {
     // option 2: horizontal or vertical
     return look_horizontal_or_vertical(rawAngle, 0.8); // 0.8 here means: increase the chance of getting horizontal labels
   }
 
   // option 3-n: round to n directions
-  return look_round_n_directions(rawAngle, alignOpt);
+  return look_round_n_directions(rawAngle, option);
 }
 
 void main() {
@@ -91,6 +91,7 @@ void main() {
     vec3 endPoint   = project(REF + alignDir);
 
     clipAngle = applyAlignOption(
+      angle + // user defined attribute
       atan(
         (endPoint.y - startPoint.y),
         (endPoint.x - startPoint.x)
@@ -98,15 +99,12 @@ void main() {
     );
   }
 
-
   //Compute plane offset
   vec2 planeCoord = position.xy * pixelScale;
 
-  float totalAngle = angle + clipAngle;
-
   mat2 planeXform = scale * mat2(
-     cos(totalAngle), sin(totalAngle),
-    -sin(totalAngle), cos(totalAngle)
+     cos(clipAngle), sin(clipAngle),
+    -sin(clipAngle), cos(clipAngle)
   );
 
   vec2 viewOffset = 2.0 * planeXform * planeCoord / resolution;
