@@ -457,6 +457,10 @@ proto.draw = function(params) {
     projection,
     this.pixelRatio)
 
+  var alignOpt = [0,0,1]
+  // Note: the 3rd member is the integer option
+  // from {-1, 0, 1, 2, 3, ..., n}
+
   for(var i=0; i<3; ++i) {
 
     var minor      = lineOffset[i].primalMinor
@@ -467,6 +471,12 @@ proto.draw = function(params) {
         offset[j] += pixelScaleF * minor[j] * Math.max(this.lineTickLength[j], 0)  / model[5*j]
       }
     }
+
+    var axis = [0,0,0]
+    axis[i] = 1
+
+    var alignDir = [0,0,0]
+    alignDir[i] = 1
 
     //Draw tick text
     if(this.tickEnable[i]) {
@@ -480,9 +490,12 @@ proto.draw = function(params) {
       this._text.drawTicks(
         i,
         this.tickSize[i],
-        this.tickAngle[i],
+        this.tickAngle[i] + 0.5 * Math.PI,
         offset,
-        this.tickColor[i])
+        this.tickColor[i],
+        axis,
+        alignDir,
+        alignOpt)
     }
 
     //Draw labels
@@ -494,13 +507,21 @@ proto.draw = function(params) {
       }
       offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
 
+      var alignDir = [0,0,0]
+      if(this.labels[i].length > 4) { // for large label axis enable alignDir to axis
+        alignDir[i]  = 1
+      }
+
       //Draw axis
       this._text.drawLabel(
         i,
         this.labelSize[i],
         this.labelAngle[i],
         offset,
-        this.labelColor[i])
+        this.labelColor[i],
+        [0,0,0],
+        alignDir,
+        alignOpt)
     }
   }
 
