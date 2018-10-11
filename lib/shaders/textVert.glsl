@@ -23,7 +23,7 @@ float positive_angle(float a) {
 
 float look_upwards(float a) {
   float b = positive_angle(a);
-  if ((b > HALF_PI) && (b < ONE_AND_HALF_PI)) return b - PI;
+  if ((b > HALF_PI) && (b <= ONE_AND_HALF_PI)) return b - PI;
   return b;
 }
 
