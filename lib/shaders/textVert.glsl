@@ -15,14 +15,18 @@ const float TWO_PI = 2.0 * PI;
 const float HALF_PI = 0.5 * PI;
 const float ONE_AND_HALF_PI = 1.5 * PI;
 
+int option = int(floor(alignOpt.x + 0.001));
+float up_tolerance =   alignOpt.y;
+float hv_ratio =       alignOpt.z;
+
 float positive_angle(float a) {
   if (a < 0.0) return a + TWO_PI;
   return a;
 }
 
-float look_upwards(float a) {
+float look_upwards(float a, float tolerance) {
   float b = positive_angle(a);
-  if ((b > HALF_PI) && (b < ONE_AND_HALF_PI)) return b - PI;
+  if ((b > HALF_PI + tolerance) && (b <= ONE_AND_HALF_PI + tolerance)) return b - PI;
   return b;
 }
 
@@ -48,10 +52,8 @@ float look_round_n_directions(float a, int n) {
   float b = positive_angle(a);
   float div = TWO_PI / float(n);
   float c = roundTo(b, div);
-  return look_upwards(c);
+  return look_upwards(c, up_tolerance);
 }
-
-int option = int(floor(alignOpt.z + 0.001));
 
 float applyAlignOption(float rawAngle) {
 
@@ -63,15 +65,17 @@ float applyAlignOption(float rawAngle) {
     return rawAngle;
   } else if (option == 1) {
     // option 1: use free angle, but flip when reversed
-    return look_upwards(rawAngle);
+    return look_upwards(rawAngle, up_tolerance);
   } else if (option == 2) {
     // option 2: horizontal or vertical
-    return look_horizontal_or_vertical(rawAngle, 0.8); // 0.8 here means: increase the chance of getting horizontal labels
+    return look_horizontal_or_vertical(rawAngle, hv_ratio);
   }
 
   // option 3-n: round to n directions
   return look_round_n_directions(rawAngle, option);
 }
+
+bool enableAlign = (alignDir.x != 0.0) || (alignDir.y != 0.0) || (alignDir.z != 0.0);
 
 void main() {
 
@@ -79,19 +83,15 @@ void main() {
   float axisDistance = position.z;
   vec3 dataPosition = axisDistance * axis + offset;
 
-  float clipAngle = 0.0;
+  float clipAngle = angle; // i.e. user defined attributes for each tick
 
-  if ((alignDir.x != 0.0) ||
-      (alignDir.y != 0.0) ||
-      (alignDir.z != 0.0)) {
+  if (enableAlign) {
+    vec3 startPoint = project(dataPosition);
+    vec3 endPoint   = project(dataPosition + alignDir);
 
-    vec3 REF = dataPosition;
+    if (endPoint.z < 0.0) endPoint = project(dataPosition - alignDir);
 
-    vec3 startPoint = project(REF);
-    vec3 endPoint   = project(REF + alignDir);
-
-    clipAngle = applyAlignOption(
-      angle + // i.e. user defined attributes for each tick
+    clipAngle += applyAlignOption(
       atan(
         (endPoint.y - startPoint.y) * resolution.y,
         (endPoint.x - startPoint.x) * resolution.x
