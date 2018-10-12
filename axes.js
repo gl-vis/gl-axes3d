@@ -545,7 +545,7 @@ proto.draw = function(params) {
     if(this.labelEnable[i]) {
 
       upwardsTolerance = 0; // no tolerance for titles
-      alignOpt[0] = [this.labelAlign[i], upwardsTolerance, hv_ratio]
+      alignOpt = [this.labelAlign[i], upwardsTolerance, hv_ratio]
       if(alignOpt[0] === 'auto') alignOpt[0] = 1
       else alignOpt[0] = parseInt('' + alignOpt[0])
 
