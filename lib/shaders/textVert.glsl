@@ -89,7 +89,9 @@ void main() {
     vec3 startPoint = project(dataPosition);
     vec3 endPoint   = project(dataPosition + alignDir);
 
-    clipAngle = applyAlignOption(
+    if (endPoint.z < 0.0) endPoint = project(dataPosition - alignDir);
+
+    clipAngle += applyAlignOption(
       atan(
         (endPoint.y - startPoint.y) * resolution.y,
         (endPoint.x - startPoint.x) * resolution.x

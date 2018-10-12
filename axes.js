@@ -36,7 +36,7 @@ function Axes(gl) {
   this.tickFont       = [ 'sans-serif', 'sans-serif', 'sans-serif' ]
   this.tickSize       = [ 12, 12, 12 ]
   this.tickAngle      = [ 0, 0, 0 ]
-  this.tickAlign      = [ 'auto', 'auto', 'auto' ]
+  this._tickAlign      = [ 'auto', 'auto', 'auto' ]
   this.tickColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
   this.tickPad        = [ 10, 10, 10 ]
 
@@ -49,8 +49,8 @@ function Axes(gl) {
   this.labelEnable    = [ true, true, true ]
   this.labelFont      = 'sans-serif'
   this.labelSize      = [ 20, 20, 20 ]
-  this.labelAngle     = [ 0, 0, 0 ]
-  this.labelAlign     = [ 'auto', 'auto', 'auto' ]
+  this._labelAngle     = [ 0, 0, 0 ]
+  this._labelAlign     = [ 'auto', 'auto', 'auto' ]
   this.labelColor     = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
   this.labelPad       = [ 10, 10, 10 ]
 
@@ -515,9 +515,16 @@ proto.draw = function(params) {
     //Draw tick text
     if(this.tickEnable[i]) {
 
-      upwardsTolerance = 0.25 * Math.PI; // allow downwards ticks (45 degrees)
+      upwardsTolerance = 0.0 // using a value e.g. 0.25 * Math.PI could allow downwards ticks (45 degrees)
 
-      alignOpt = [this.tickAlign[i], upwardsTolerance, hv_ratio]
+      if(this.tickAngle[i] === -3600) {
+        this.tickAngle[i] = 0
+        this._tickAlign[i] = 'auto'
+      } else {
+        this._tickAlign[i] = -1
+      }
+
+      alignOpt = [this._tickAlign[i], upwardsTolerance, hv_ratio]
       if(alignOpt[0] === 'auto') alignOpt[0] = 1
       else alignOpt[0] = parseInt('' + alignOpt[0])
 
@@ -544,8 +551,8 @@ proto.draw = function(params) {
     //Draw labels
     if(this.labelEnable[i]) {
 
-      upwardsTolerance = 0; // no tolerance for titles
-      alignOpt = [this.labelAlign[i], upwardsTolerance, hv_ratio]
+      upwardsTolerance = 0 // no tolerance for titles
+      alignOpt = [this._labelAlign[i], upwardsTolerance, hv_ratio]
       if(alignOpt[0] === 'auto') alignOpt[0] = 1
       else alignOpt[0] = parseInt('' + alignOpt[0])
 
@@ -564,7 +571,7 @@ proto.draw = function(params) {
       this._text.drawLabel(
         i,
         this.labelSize[i],
-        this.labelAngle[i],
+        this._labelAngle[i],
         offset,
         this.labelColor[i],
         [0,0,0],
