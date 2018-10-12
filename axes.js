@@ -459,15 +459,48 @@ proto.draw = function(params) {
     projection,
     this.pixelRatio)
 
-  var alignOption; // options in shader are from this list {-1, 0, 1, 2, 3, ..., n}
+  var alignOpt // options in shader are from this list {-1, 0, 1, 2, 3, ..., n}
   // -1: backward compatible
   //  0: raw data
   //  1: auto align, free angles
   //  2: auto align, horizontal or vertical
-  //3-n: auto align, round to n directions e.g. 12 -> round to 30 degrees
+  //3-n: auto align, round to n directions e.g. 12 -> round to angles with 30-degree steps
+
+  var upwardsTolerance
+  var hv_ratio = 0.5 // can have an effect on the ratio between horizontals and verticals when using option 2
+
+  var alignDir
+
+  function alignTo(i) {
+    alignDir = [0,0,0];
+    alignDir[i] = 1
+  }
+
+  function solveTickAlignments(i, minor, major) {
+
+    var i1 = (i + 1) % 3
+    var i2 = (i + 2) % 3
+
+    var A = minor[i1]
+    var B = minor[i2]
+    var C = major[i1]
+    var D = major[i2]
+
+         if ((A > 0) && (D > 0)) { alignTo(i1); return; }
+    else if ((A > 0) && (D < 0)) { alignTo(i1); return; }
+    else if ((A < 0) && (D > 0)) { alignTo(i1); return; }
+    else if ((A < 0) && (D < 0)) { alignTo(i1); return; }
+    else if ((B > 0) && (C > 0)) { alignTo(i2); return; }
+    else if ((B > 0) && (C < 0)) { alignTo(i2); return; }
+    else if ((B < 0) && (C > 0)) { alignTo(i2); return; }
+    else if ((B < 0) && (C < 0)) { alignTo(i2); return; }
+  }
 
   for(var i=0; i<3; ++i) {
+
     var minor      = lineOffset[i].primalMinor
+    var major      = lineOffset[i].mirrorMinor
+
     var offset     = copyVec3(PRIMAL_OFFSET, lineOffset[i].primalOffset)
 
     for(var j=0; j<3; ++j) {
@@ -481,127 +514,15 @@ proto.draw = function(params) {
 
     //Draw tick text
     if(this.tickEnable[i]) {
-      alignOption = this.tickAlign[i]
-      if(alignOption === 'auto') alignOption = 1
-      else alignOption = parseInt('' + alignOption)
 
-      var alignDir = [0,0,0,alignOption]
+      upwardsTolerance = 0.25 * Math.PI; // allow downwards ticks (45 degrees)
 
-      /*
-      var signViewXY = Math.sign(view[10]);
-      if (signViewXY > 0) {
-             if (i === 2) alignDir[2] = 0 // horizontal
-        else if (i === 1) alignDir[0] = 1 // align to X
-        else if (i === 0) alignDir[1] = 1 // align to Y
-      } else {
-             if (i === 2) alignDir[2] = 0 // horizontal
-        else if (i === 1) alignDir[2] = 1 // align to Z
-        else if (i === 0) alignDir[2] = 1 // align to Z
-      }
-      */
-      
-      //console.table(view);
-      
-      //var rx = view[0];
-      //var ry = view[5];
-      //var rz = view[10];
-      
-      function getIndexIn4x4(i, j) {
-        return i * 4 + j;
-      }
-      
-      var tz = Math.atan2(view[getIndexIn4x4(1,0)], view[getIndexIn4x4(0,0)])
-      var tx = Math.atan2(view[getIndexIn4x4(2,1)], view[getIndexIn4x4(2,2)])
-      var ty = -Math.asin(view[getIndexIn4x4(2,0)])
+      alignOpt = [this.tickAlign[i], upwardsTolerance, hv_ratio]
+      if(alignOpt[0] === 'auto') alignOpt[0] = 1
+      else alignOpt[0] = parseInt('' + alignOpt[0])
 
-      var cos_rx = Math.cos(tx)
-      var cos_ry = Math.cos(ty)
-      var cos_rz = Math.cos(tz)
-
-      var sin_rx = Math.sin(tx)
-      var sin_ry = Math.sin(ty)
-      var sin_rz = Math.sin(tz)
-
-      function rotateZ(cos, sin, vec) {
-        var a = vec.x;
-        var b = vec.y;
-        var c = vec.z;
-        return{
-          x: a * cos - b * sin,
-          y: a * sin + b * cos,
-          z: c
-        };
-      }
-
-      function rotateY(cos, sin, vec) {
-        var a = vec.z;
-        var b = vec.x;
-        var c = vec.y;
-        return{
-          z: a * cos - b * sin,
-          x: a * sin + b * cos,
-          y: c
-        };
-      }
-      
-      function rotateX(cos, sin, vec) {
-        var a = vec.y;
-        var b = vec.z;
-        var c = vec.x;
-        return{
-          y: a * cos - b * sin,
-          z: a * sin + b * cos,
-          x: c
-        };
-      }
-      
-      var dir = (
-        rotateX(cos_rx, sin_rx,
-        rotateY(cos_ry, sin_ry,
-        rotateZ(cos_rz, sin_rz,
-          {x:1.0, y:0.0, z:0.0}
-        ))));
-
-      var rx = dir.x
-      var ry = dir.y
-      var rz = dir.z
-
-      console.log({x: rx, y:ry, z:rz});
-      
-      /*
-      rx = Math.abs(rx)
-      ry = Math.abs(ry)
-      rz = Math.abs(rz)
-      */
-      
-      
-      if (i === 0) {
-        if (ry < rz) {
-          alignDir[1] = 1
-        } else {
-          alignDir[2] = 1
-        }
-      }
-      
-      if (i === 1) {
-        if (rz < rx) {
-          alignDir[2] = 1
-        } else {
-          alignDir[0] = 1
-        }
-      }
-      
-      if (i === 2) {
-        if (rx < ry) {
-          alignDir[0] = 1
-        } else {
-          alignDir[1] = 1
-        }
-      }
-      
-      
-      
-      
+      alignDir = [0,0,0]
+      solveTickAlignments(i, minor, major)
 
       //Add tick padding
       for(var j=0; j<3; ++j) {
@@ -616,18 +537,21 @@ proto.draw = function(params) {
         offset,
         this.tickColor[i],
         axis,
-        alignDir)
+        alignDir,
+        alignOpt)
     }
 
     //Draw labels
     if(this.labelEnable[i]) {
-      alignOption = this.labelAlign[i]
-      if(alignOption === 'auto') alignOption = 1
-      else alignOption = parseInt('' + alignOption)
 
-      var alignDir = [0,0,0,alignOption]
+      upwardsTolerance = 0; // no tolerance for titles
+      alignOpt[0] = [this.labelAlign[i], upwardsTolerance, hv_ratio]
+      if(alignOpt[0] === 'auto') alignOpt[0] = 1
+      else alignOpt[0] = parseInt('' + alignOpt[0])
+
+      var alignDir = [0,0,0]
       if(this.labels[i].length > 4) { // for large label axis enable alignDir to axis
-        alignDir[i]  = 1
+        alignTo(i)
       }
 
       //Add label padding
@@ -644,7 +568,8 @@ proto.draw = function(params) {
         offset,
         this.labelColor[i],
         [0,0,0],
-        alignDir)
+        alignDir,
+        alignOpt)
     }
   }
 

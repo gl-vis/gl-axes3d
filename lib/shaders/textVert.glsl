@@ -1,8 +1,7 @@
 attribute vec3 position;
 
 uniform mat4 model, view, projection;
-uniform vec3 offset, axis;
-uniform vec4 alignDir;
+uniform vec3 offset, axis, alignDir, alignOpt;
 uniform float scale, angle, pixelScale;
 uniform vec2 resolution;
 
@@ -16,14 +15,18 @@ const float TWO_PI = 2.0 * PI;
 const float HALF_PI = 0.5 * PI;
 const float ONE_AND_HALF_PI = 1.5 * PI;
 
+int option = int(floor(alignOpt.x + 0.001));
+float up_tolerance =   alignOpt.y;
+float hv_ratio =       alignOpt.z;
+
 float positive_angle(float a) {
   if (a < 0.0) return a + TWO_PI;
   return a;
 }
 
-float look_upwards(float a) {
+float look_upwards(float a, float tolerance) {
   float b = positive_angle(a);
-  if ((b > HALF_PI) && (b <= ONE_AND_HALF_PI)) return b - PI;
+  if ((b > HALF_PI + tolerance) && (b <= ONE_AND_HALF_PI + tolerance)) return b - PI;
   return b;
 }
 
@@ -49,10 +52,8 @@ float look_round_n_directions(float a, int n) {
   float b = positive_angle(a);
   float div = TWO_PI / float(n);
   float c = roundTo(b, div);
-  return look_upwards(c);
+  return look_upwards(c, up_tolerance);
 }
-
-int option = int(floor(alignDir.w + 0.001));
 
 float applyAlignOption(float rawAngle) {
 
@@ -64,10 +65,10 @@ float applyAlignOption(float rawAngle) {
     return rawAngle;
   } else if (option == 1) {
     // option 1: use free angle, but flip when reversed
-    return look_upwards(rawAngle);
+    return look_upwards(rawAngle, up_tolerance);
   } else if (option == 2) {
     // option 2: horizontal or vertical
-    return look_horizontal_or_vertical(rawAngle, 0.8); // 0.8 here means: increase the chance of getting horizontal labels
+    return look_horizontal_or_vertical(rawAngle, hv_ratio);
   }
 
   // option 3-n: round to n directions
@@ -86,7 +87,7 @@ void main() {
 
   if (enableAlign) {
     vec3 startPoint = project(dataPosition);
-    vec3 endPoint   = project(dataPosition + alignDir.xyz);
+    vec3 endPoint   = project(dataPosition + alignDir);
 
     clipAngle = applyAlignOption(
       atan(
