@@ -36,6 +36,7 @@ function Axes(gl) {
   this.tickFont       = [ 'sans-serif', 'sans-serif', 'sans-serif' ]
   this.tickSize       = [ 12, 12, 12 ]
   this.tickAngle      = [ 0, 0, 0 ]
+  this._tickAlign      = [ 'auto', 'auto', 'auto' ]
   this.tickColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
   this.tickPad        = [ 10, 10, 10 ]
 
@@ -48,7 +49,8 @@ function Axes(gl) {
   this.labelEnable    = [ true, true, true ]
   this.labelFont      = 'sans-serif'
   this.labelSize      = [ 20, 20, 20 ]
-  this.labelAngle     = [ 0, 0, 0 ]
+  this._labelAngle     = [ 0, 0, 0 ]
+  this._labelAlign     = [ 'auto', 'auto', 'auto' ]
   this.labelColor     = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
   this.labelPad       = [ 10, 10, 10 ]
 
@@ -457,9 +459,48 @@ proto.draw = function(params) {
     projection,
     this.pixelRatio)
 
+  var alignOpt // options in shader are from this list {-1, 0, 1, 2, 3, ..., n}
+  // -1: backward compatible
+  //  0: raw data
+  //  1: auto align, free angles
+  //  2: auto align, horizontal or vertical
+  //3-n: auto align, round to n directions e.g. 12 -> round to angles with 30-degree steps
+
+  var upwardsTolerance
+  var hv_ratio = 0.5 // can have an effect on the ratio between horizontals and verticals when using option 2
+
+  var alignDir
+
+  function alignTo(i) {
+    alignDir = [0,0,0];
+    alignDir[i] = 1
+  }
+
+  function solveTickAlignments(i, minor, major) {
+
+    var i1 = (i + 1) % 3
+    var i2 = (i + 2) % 3
+
+    var A = minor[i1]
+    var B = minor[i2]
+    var C = major[i1]
+    var D = major[i2]
+
+         if ((A > 0) && (D > 0)) { alignTo(i1); return; }
+    else if ((A > 0) && (D < 0)) { alignTo(i1); return; }
+    else if ((A < 0) && (D > 0)) { alignTo(i1); return; }
+    else if ((A < 0) && (D < 0)) { alignTo(i1); return; }
+    else if ((B > 0) && (C > 0)) { alignTo(i2); return; }
+    else if ((B > 0) && (C < 0)) { alignTo(i2); return; }
+    else if ((B < 0) && (C > 0)) { alignTo(i2); return; }
+    else if ((B < 0) && (C < 0)) { alignTo(i2); return; }
+  }
+
   for(var i=0; i<3; ++i) {
 
     var minor      = lineOffset[i].primalMinor
+    var major      = lineOffset[i].mirrorMinor
+
     var offset     = copyVec3(PRIMAL_OFFSET, lineOffset[i].primalOffset)
 
     for(var j=0; j<3; ++j) {
@@ -468,8 +509,27 @@ proto.draw = function(params) {
       }
     }
 
+    var axis = [0,0,0]
+    axis[i] = 1
+
     //Draw tick text
     if(this.tickEnable[i]) {
+
+      upwardsTolerance = 0.0 // using a value e.g. 0.25 * Math.PI could allow downwards ticks (45 degrees)
+
+      if(this.tickAngle[i] === -3600) {
+        this.tickAngle[i] = 0
+        this._tickAlign[i] = 'auto'
+      } else {
+        this._tickAlign[i] = -1
+      }
+
+      alignOpt = [this._tickAlign[i], upwardsTolerance, hv_ratio]
+      if(alignOpt[0] === 'auto') alignOpt[0] = 1
+      else alignOpt[0] = parseInt('' + alignOpt[0])
+
+      alignDir = [0,0,0]
+      solveTickAlignments(i, minor, major)
 
       //Add tick padding
       for(var j=0; j<3; ++j) {
@@ -482,11 +542,24 @@ proto.draw = function(params) {
         this.tickSize[i],
         this.tickAngle[i],
         offset,
-        this.tickColor[i])
+        this.tickColor[i],
+        axis,
+        alignDir,
+        alignOpt)
     }
 
     //Draw labels
     if(this.labelEnable[i]) {
+
+      upwardsTolerance = 0 // no tolerance for titles
+      alignOpt = [this._labelAlign[i], upwardsTolerance, hv_ratio]
+      if(alignOpt[0] === 'auto') alignOpt[0] = 1
+      else alignOpt[0] = parseInt('' + alignOpt[0])
+
+      var alignDir = [0,0,0]
+      if(this.labels[i].length > 4) { // for large label axis enable alignDir to axis
+        alignTo(i)
+      }
 
       //Add label padding
       for(var j=0; j<3; ++j) {
@@ -498,9 +571,12 @@ proto.draw = function(params) {
       this._text.drawLabel(
         i,
         this.labelSize[i],
-        this.labelAngle[i],
+        this._labelAngle[i],
         offset,
-        this.labelColor[i])
+        this.labelColor[i],
+        [0,0,0],
+        alignDir,
+        alignOpt)
     }
   }
 
