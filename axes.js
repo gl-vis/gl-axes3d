@@ -413,7 +413,7 @@ proto.draw = function(params) {
       var v = (i + 1 + (j^1)) % 3
       if(this.zeroEnable[v]) {
         //Check if zero line in bounds
-        if(bounds[0][v] <= 0 && bounds[1][v] >= 0) {
+        if(Math.min(bounds[0][v], bounds[1][v]) <= 0 && Math.max(bounds[0][v], bounds[1][v]) >= 0) {
           this._lines.drawZero(u, v, this.bounds, x, this.zeroLineColor[v], this.zeroLineWidth[v]*this.pixelRatio)
         }
       }
