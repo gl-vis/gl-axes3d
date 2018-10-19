@@ -76,27 +76,27 @@ float applyAlignOption(float rawAngle) {
 
 bool enableAlign = (alignDir.x != 0.0) || (alignDir.y != 0.0) || (alignDir.z != 0.0);
 
+float computeAlignAngle(vec3 pnt, vec3 dir) {
+  vec3 startPoint = project(pnt);
+  vec3 endPoint   = project(pnt + dir);
+
+  return applyAlignOption(
+    atan(
+      (endPoint.y - startPoint.y) * resolution.y,
+      (endPoint.x - startPoint.x) * resolution.x
+    )
+  );
+}
+
 void main() {
 
   //Compute world offset
   float axisDistance = position.z;
   vec3 dataPosition = axisDistance * axis + offset;
 
-  float clipAngle = angle; // i.e. user defined attributes for each tick
-
-  if (enableAlign) {
-    vec3 startPoint = project(dataPosition);
-    vec3 endPoint   = project(dataPosition + alignDir);
-
-    if (endPoint.z < 0.0) endPoint = project(dataPosition - alignDir);
-
-    clipAngle = applyAlignOption(
-      atan(
-        (endPoint.y - startPoint.y) * resolution.y,
-        (endPoint.x - startPoint.x) * resolution.x
-      )
-    );
-  }
+  float clipAngle = (enableAlign) ? 
+    computeAlignAngle(dataPosition, alignDir) :
+    angle; // i.e. user defined attributes for each tick
 
   //Compute plane offset
   vec2 planeCoord = position.xy * pixelScale;
