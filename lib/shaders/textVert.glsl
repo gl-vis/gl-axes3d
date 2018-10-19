@@ -113,7 +113,7 @@ void main() {
     
     if (dot(vec2(cos(clipAngle), sin(clipAngle)), 
             vec2(cos(axisAngle), sin(axisAngle))) < 0.0) {
-      //clipAngle = PI + clipAngle;
+      clipAngle = PI + clipAngle;
       
       debug = 1.0;
     } else debug = 0.0;
