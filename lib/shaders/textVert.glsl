@@ -25,10 +25,13 @@ float positive_angle(float a) {
 }
 
 float look_upwards(float a) {
+  /*
   float b = positive_angle(a);
   return ((b > HALF_PI) && (b <= ONE_AND_HALF_PI)) ?
     b - PI :
     b;
+  */
+  return a;
 }
 
 float look_horizontal_or_vertical(float a, float ratio) {
@@ -109,13 +112,16 @@ float axisAngle;
     
     clipAngle = computeViewAngle(dataPosition, dataPosition + alignDir);
     axisAngle = computeViewAngle(dataPosition, dataPosition - axis);
-    if (cos(axisAngle) < 0.0) axisAngle = -axisAngle;
+    if (sin(axisAngle) < 0.0) axisAngle = -axisAngle;
     
     if (dot(vec2(cos(clipAngle), sin(clipAngle)), 
             vec2(cos(axisAngle), sin(axisAngle))) < 0.0) {
       //clipAngle = PI + clipAngle;
+      
       debug = 1.0;
     } else debug = 0.0;
+    
+    clipAngle = applyAlignOption(clipAngle);
 
   }    
 
