@@ -25,10 +25,13 @@ float positive_angle(float a) {
 }
 
 float look_upwards(float a) {
+  return a;
+  /*
   float b = positive_angle(a);
   return ((b > HALF_PI) && (b <= ONE_AND_HALF_PI)) ?
     b - PI :
     b;
+    */
 }
 
 float look_horizontal_or_vertical(float a, float ratio) {
@@ -85,7 +88,14 @@ float computeViewAngle(vec3 a, vec3 b) {
   return atan(
     (B.y - A.y) * resolution.y,
     (B.x - A.x) * resolution.x
-  );
+  );  
+  
+/*
+  return atan(
+    (B.y - A.y) * (resolution.y - 0.5),
+    (B.x - A.x) * (resolution.x - 0.5)
+  );  
+*/
 }
 
 varying float debug;
@@ -96,36 +106,41 @@ void main() {
   float axisDistance = position.z;
   vec3 dataPosition = axisDistance * axis + offset;
 
-  float axisAngle;
-  float clipAngle = angle; // i.e. user defined attributes for each tick
+  
+  float beta = angle; // i.e. user defined attributes for each tick
+
+  debug = 0.0;
   
   if (enableAlign) {
-    //clipAngle = applyAlignOption(computeViewAngle(dataPosition, alignDir));
+    float clipAngle = computeViewAngle(dataPosition, dataPosition + alignDir);
+    float axisAngle = computeViewAngle(dataPosition, dataPosition + axis);
+    float flip = 0.0;
 
-    clipAngle = computeViewAngle(dataPosition, dataPosition + alignDir);
-    
-    clipAngle = applyAlignOption(clipAngle);
-    
-    axisAngle = computeViewAngle(dataPosition, dataPosition - offset);
     if (sin(axisAngle) < 0.0) {
-      axisAngle = -axisAngle;
+      axisAngle += PI;
+      debug += 1.0;
     }
     
-    if (dot(vec2(cos(clipAngle), sin(clipAngle)), 
-            vec2(cos(axisAngle), sin(axisAngle))) < 0.0) {
-      clipAngle = PI + clipAngle;
-      
-      debug = 1.0;
-    } else debug = 0.0;
+    if (sin(clipAngle) < 0.0) {
+      clipAngle += PI;
+      debug += 2.0;
+    }
+    
+    if (dot(vec2(cos(axisAngle), sin(axisAngle)), 
+            vec2(sin(clipAngle),-cos(clipAngle))) > 0.0) {
+        //debug += 4.0;
+        flip = 1.0;
+    } 
 
+    beta = applyAlignOption(clipAngle) + flip * PI;
   }    
 
   //Compute plane offset
   vec2 planeCoord = position.xy * pixelScale;
 
   mat2 planeXform = scale * mat2(
-     cos(clipAngle), sin(clipAngle),
-    -sin(clipAngle), cos(clipAngle)
+     cos(beta), sin(beta),
+    -sin(beta), cos(beta)
   );
 
   vec2 viewOffset = 2.0 * planeXform * planeCoord / resolution;
