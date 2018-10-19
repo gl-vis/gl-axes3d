@@ -466,7 +466,6 @@ proto.draw = function(params) {
   //  2: auto align, horizontal or vertical
   //3-n: auto align, round to n directions e.g. 12 -> round to angles with 30-degree steps
 
-  var upwardsTolerance
   var hv_ratio = 0.5 // can have an effect on the ratio between horizontals and verticals when using option 2
 
   var alignDir
@@ -515,8 +514,6 @@ proto.draw = function(params) {
     //Draw tick text
     if(this.tickEnable[i]) {
 
-      upwardsTolerance = 0.0 // using a value e.g. 0.25 * Math.PI could allow downwards ticks (45 degrees)
-
       if(this.tickAngle[i] === -3600) {
         this.tickAngle[i] = 0
         this._tickAlign[i] = 'auto'
@@ -524,7 +521,7 @@ proto.draw = function(params) {
         this._tickAlign[i] = -1
       }
 
-      alignOpt = [this._tickAlign[i], upwardsTolerance, hv_ratio]
+      alignOpt = [this._tickAlign[i], hv_ratio, 0.0]
       if(alignOpt[0] === 'auto') alignOpt[0] = 1
       else alignOpt[0] = parseInt('' + alignOpt[0])
 
@@ -551,8 +548,7 @@ proto.draw = function(params) {
     //Draw labels
     if(this.labelEnable[i]) {
 
-      upwardsTolerance = 0 // no tolerance for titles
-      alignOpt = [this._labelAlign[i], upwardsTolerance, hv_ratio]
+      alignOpt = [this._labelAlign[i], hv_ratio, 0.0]
       if(alignOpt[0] === 'auto') alignOpt[0] = 1
       else alignOpt[0] = parseInt('' + alignOpt[0])
 

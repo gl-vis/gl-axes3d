@@ -16,17 +16,16 @@ const float HALF_PI = 0.5 * PI;
 const float ONE_AND_HALF_PI = 1.5 * PI;
 
 int option = int(floor(alignOpt.x + 0.001));
-float up_tolerance =   alignOpt.y;
-float hv_ratio =       alignOpt.z;
+float hv_ratio =       alignOpt.y;
 
 float positive_angle(float a) {
   if (a < 0.0) return a + TWO_PI;
   return a;
 }
 
-float look_upwards(float a, float tolerance) {
+float look_upwards(float a) {
   float b = positive_angle(a);
-  if ((b > HALF_PI + tolerance) && (b <= ONE_AND_HALF_PI + tolerance)) return b - PI;
+  if ((b > HALF_PI) && (b <= ONE_AND_HALF_PI)) return b - PI;
   return b;
 }
 
@@ -52,7 +51,7 @@ float look_round_n_directions(float a, int n) {
   float b = positive_angle(a);
   float div = TWO_PI / float(n);
   float c = roundTo(b, div);
-  return look_upwards(c, up_tolerance);
+  return look_upwards(c);
 }
 
 float applyAlignOption(float rawAngle) {
@@ -65,7 +64,7 @@ float applyAlignOption(float rawAngle) {
     return rawAngle;
   } else if (option == 1) {
     // option 1: use free angle, but flip when reversed
-    return look_upwards(rawAngle, up_tolerance);
+    return look_upwards(rawAngle);
   } else if (option == 2) {
     // option 2: horizontal or vertical
     return look_horizontal_or_vertical(rawAngle, hv_ratio);
@@ -91,7 +90,7 @@ void main() {
 
     if (endPoint.z < 0.0) endPoint = project(dataPosition - alignDir);
 
-    clipAngle += applyAlignOption(
+    clipAngle = applyAlignOption(
       atan(
         (endPoint.y - startPoint.y) * resolution.y,
         (endPoint.x - startPoint.x) * resolution.x
