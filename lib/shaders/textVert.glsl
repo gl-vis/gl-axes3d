@@ -19,14 +19,16 @@ int option = int(floor(alignOpt.x + 0.001));
 float hv_ratio =       alignOpt.y;
 
 float positive_angle(float a) {
-  if (a < 0.0) return a + TWO_PI;
-  return a;
+  return (a < 0.0) ?
+    a + TWO_PI :
+    a;
 }
 
 float look_upwards(float a) {
   float b = positive_angle(a);
-  if ((b > HALF_PI) && (b <= ONE_AND_HALF_PI)) return b - PI;
-  return b;
+  return ((b > HALF_PI) && (b <= ONE_AND_HALF_PI)) ?
+    b - PI :
+    b;
 }
 
 float look_horizontal_or_vertical(float a, float ratio) {
