@@ -91,28 +91,25 @@ float computeViewAngle(vec3 a, vec3 b) {
 varying float debug;
 
 void main() {
-  
-///////// we could compute this outside main //////////  
-float axisAngle;
-///////////////////////////////////////////////////////
-  
 
   //Compute world offset
   float axisDistance = position.z;
   vec3 dataPosition = axisDistance * axis + offset;
 
+  float axisAngle;
   float clipAngle = angle; // i.e. user defined attributes for each tick
   
   if (enableAlign) {
     //clipAngle = applyAlignOption(computeViewAngle(dataPosition, alignDir));
-    
-    
+
     clipAngle = computeViewAngle(dataPosition, dataPosition + alignDir);
     
     clipAngle = applyAlignOption(clipAngle);
     
-    axisAngle = computeViewAngle(dataPosition, dataPosition - axis);
-    if (sin(axisAngle) < 0.0) axisAngle = -axisAngle;
+    axisAngle = computeViewAngle(dataPosition, dataPosition - offset);
+    if (sin(axisAngle) < 0.0) {
+      axisAngle = -axisAngle;
+    }
     
     if (dot(vec2(cos(clipAngle), sin(clipAngle)), 
             vec2(cos(axisAngle), sin(axisAngle))) < 0.0) {
@@ -120,8 +117,6 @@ float axisAngle;
       
       debug = 1.0;
     } else debug = 0.0;
-    
-    
 
   }    
 
