@@ -78,25 +78,46 @@ float applyAlignOption(float rawAngle) {
 
 bool enableAlign = (alignDir.x != 0.0) || (alignDir.y != 0.0) || (alignDir.z != 0.0);
 
-float computeClipAngle(vec3 pnt, vec3 dir) {
-  vec3 startPoint = project(pnt);
-  vec3 endPoint   = project(pnt + dir);
+float computeViewAngle(vec3 a, vec3 b) {
+  vec3 A = project(a);
+  vec3 B = project(b);
 
   return atan(
-    (endPoint.y - startPoint.y) * resolution.y,
-    (endPoint.x - startPoint.x) * resolution.x
+    (B.y - A.y) * resolution.y,
+    (B.x - A.x) * resolution.x
   );
 }
 
+varying float debug;
+
 void main() {
+  
+///////// we could compute this outside main //////////  
+float axisAngle;
+///////////////////////////////////////////////////////
+  
 
   //Compute world offset
   float axisDistance = position.z;
   vec3 dataPosition = axisDistance * axis + offset;
 
-  float clipAngle = (enableAlign) ? 
-    applyAlignOption(computeClipAngle(dataPosition, alignDir)) :
-    angle; // i.e. user defined attributes for each tick
+  float clipAngle = angle; // i.e. user defined attributes for each tick
+  
+  if (enableAlign) {
+    //clipAngle = applyAlignOption(computeViewAngle(dataPosition, alignDir));
+    
+    
+    clipAngle = computeViewAngle(dataPosition, dataPosition + alignDir);
+    axisAngle = computeViewAngle(dataPosition, dataPosition - axis);
+    if (cos(axisAngle) < 0.0) axisAngle = -axisAngle;
+    
+    if (dot(vec2(cos(clipAngle), sin(clipAngle)), 
+            vec2(cos(axisAngle), sin(axisAngle))) < 0.0) {
+      //clipAngle = PI + clipAngle;
+      debug = 1.0;
+    } else debug = 0.0;
+
+  }    
 
   //Compute plane offset
   vec2 planeCoord = position.xy * pixelScale;
