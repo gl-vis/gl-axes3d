@@ -107,7 +107,7 @@ void main() {
     float flip = (dot(vec2(cos(axisAngle), sin(axisAngle)),
                       vec2(sin(clipAngle),-cos(clipAngle))) > 0.0) ? 1.0 : 0.0;
 
-    beta = applyAlignOption(clipAngle, flip * PI);
+    beta += applyAlignOption(clipAngle, flip * PI);
   }
 
   //Compute plane offset
