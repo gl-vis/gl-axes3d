@@ -10,6 +10,16 @@ vec3 project(vec3 p) {
   return pp.xyz / max(pp.w, 0.0001);
 }
 
+float computeViewAngle(vec3 a, vec3 b) {
+  vec3 A = project(a);
+  vec3 B = project(b);
+
+  return atan(
+    (B.y - A.y) * resolution.y,
+    (B.x - A.x) * resolution.x
+  );
+}
+
 const float PI = 3.141592;
 const float TWO_PI = 2.0 * PI;
 const float HALF_PI = 0.5 * PI;
@@ -25,13 +35,10 @@ float positive_angle(float a) {
 }
 
 float look_upwards(float a) {
-  return a;
-  /*
   float b = positive_angle(a);
   return ((b > HALF_PI) && (b <= ONE_AND_HALF_PI)) ?
     b - PI :
     b;
-    */
 }
 
 float look_horizontal_or_vertical(float a, float ratio) {
@@ -59,7 +66,7 @@ float look_round_n_directions(float a, int n) {
   return look_upwards(c);
 }
 
-float applyAlignOption(float rawAngle) {
+float applyAlignOption(float rawAngle, float delta) {
 
   if (option == -1) {
     // useful for backward compatibility, all texts remains horizontal
@@ -68,8 +75,8 @@ float applyAlignOption(float rawAngle) {
     // use the raw angle as calculated by atan
     return rawAngle;
   } else if (option == 1) {
-    // option 1: use free angle, but flip when reversed
-    return look_upwards(rawAngle);
+    // option 1: use free angle, but flip to align with axis
+    return rawAngle + delta;
   } else if (option == 2) {
     // option 2: horizontal or vertical
     return look_horizontal_or_vertical(rawAngle, hv_ratio);
@@ -80,60 +87,28 @@ float applyAlignOption(float rawAngle) {
 }
 
 bool enableAlign = (alignDir.x != 0.0) || (alignDir.y != 0.0) || (alignDir.z != 0.0);
-
-float computeViewAngle(vec3 a, vec3 b) {
-  vec3 A = project(a);
-  vec3 B = project(b);
-
-  return atan(
-    (B.y - A.y) * resolution.y,
-    (B.x - A.x) * resolution.x
-  );  
-  
-/*
-  return atan(
-    (B.y - A.y) * (resolution.y - 0.5),
-    (B.x - A.x) * (resolution.x - 0.5)
-  );  
-*/
-}
-
-varying float debug;
+bool isAxisTitle = (    axis.x == 0.0) && (    axis.y == 0.0) && (    axis.z == 0.0);
 
 void main() {
-
   //Compute world offset
   float axisDistance = position.z;
   vec3 dataPosition = axisDistance * axis + offset;
 
-  
   float beta = angle; // i.e. user defined attributes for each tick
 
-  debug = 0.0;
-  
   if (enableAlign) {
+    float axisAngle = (isAxisTitle) ? HALF_PI :
+                      computeViewAngle(dataPosition, dataPosition + axis);
     float clipAngle = computeViewAngle(dataPosition, dataPosition + alignDir);
-    float axisAngle = computeViewAngle(dataPosition, dataPosition + axis);
-    float flip = 0.0;
 
-    if (sin(axisAngle) < 0.0) {
-      axisAngle += PI;
-      debug += 1.0;
-    }
-    
-    if (sin(clipAngle) < 0.0) {
-      clipAngle += PI;
-      debug += 2.0;
-    }
-    
-    if (dot(vec2(cos(axisAngle), sin(axisAngle)), 
-            vec2(sin(clipAngle),-cos(clipAngle))) > 0.0) {
-        //debug += 4.0;
-        flip = 1.0;
-    } 
+    axisAngle += (sin(axisAngle) < 0.0) ? PI : 0.0;
+    clipAngle += (sin(clipAngle) < 0.0) ? PI : 0.0;
 
-    beta = applyAlignOption(clipAngle) + flip * PI;
-  }    
+    float flip = (dot(vec2(cos(axisAngle), sin(axisAngle)),
+                      vec2(sin(clipAngle),-cos(clipAngle))) > 0.0) ? 1.0 : 0.0;
+
+    beta = applyAlignOption(clipAngle, flip * PI);
+  }
 
   //Compute plane offset
   vec2 planeCoord = position.xy * pixelScale;
