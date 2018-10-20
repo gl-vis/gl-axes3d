@@ -28,10 +28,15 @@ const float ONE_AND_HALF_PI = 1.5 * PI;
 int option = int(floor(alignOpt.x + 0.001));
 float hv_ratio =       alignOpt.y;
 
+float mod_angle(float a) {
+  return mod(a, PI);
+}
+
 float positive_angle(float a) {
-  return (a < 0.0) ?
+  return mod_angle((a < 0.0) ?
     a + TWO_PI :
-    a;
+    a
+  );
 }
 
 float look_upwards(float a) {
@@ -48,11 +53,13 @@ float look_horizontal_or_vertical(float a, float ratio) {
   // likely be more horizontal than vertical.
 
   float b = positive_angle(a);
-       if (b < (      ratio) * HALF_PI) return 0.0;
-  else if (b < (2.0 - ratio) * HALF_PI) return -HALF_PI;
-  else if (b < (2.0 + ratio) * HALF_PI) return 0.0;
-  else if (b < (4.0 - ratio) * HALF_PI) return HALF_PI;
-  return 0.0;
+
+  return
+    (b < (      ratio) * HALF_PI) ? 0.0 :
+    (b < (2.0 - ratio) * HALF_PI) ? -HALF_PI :
+    (b < (2.0 + ratio) * HALF_PI) ? 0.0 :
+    (b < (4.0 - ratio) * HALF_PI) ? HALF_PI :
+                                    0.0;
 }
 
 float roundTo(float a, float b) {
@@ -67,23 +74,13 @@ float look_round_n_directions(float a, int n) {
 }
 
 float applyAlignOption(float rawAngle, float delta) {
-
-  if (option == -1) {
-    // useful for backward compatibility, all texts remains horizontal
-    return 0.0;
-  } else if (option == 0) {
-    // use the raw angle as calculated by atan
-    return rawAngle;
-  } else if (option == 1) {
-    // option 1: use free angle, but flip to align with axis
-    return rawAngle + delta;
-  } else if (option == 2) {
-    // option 2: horizontal or vertical
-    return look_horizontal_or_vertical(rawAngle, hv_ratio);
-  }
-
-  // option 3-n: round to n directions
-  return look_round_n_directions(rawAngle, option);
+  return
+    (option >  2) ? look_round_n_directions(rawAngle + delta, option) :       // option 3-n: round to n directions
+    (option == 2) ? look_horizontal_or_vertical(rawAngle + delta, hv_ratio) : // horizontal or vertical
+    (option == 1) ? rawAngle + delta :       // use free angle, and flip to align with one direction of the axis
+    (option == 0) ? look_upwards(rawAngle) : // use free angle, and stay upwards
+    (option ==-1) ? 0.0 :                    // useful for backward compatibility, all texts remains horizontal
+                    rawAngle;                // otherwise return back raw input angle
 }
 
 bool enableAlign = (alignDir.x != 0.0) || (alignDir.y != 0.0) || (alignDir.z != 0.0);
@@ -96,15 +93,19 @@ void main() {
 
   float beta = angle; // i.e. user defined attributes for each tick
 
+  float axisAngle;
+  float clipAngle;
+  float flip;
+  
   if (enableAlign) {
-    float axisAngle = (isAxisTitle) ? HALF_PI :
+    axisAngle = (isAxisTitle) ? HALF_PI :
                       computeViewAngle(dataPosition, dataPosition + axis);
-    float clipAngle = computeViewAngle(dataPosition, dataPosition + alignDir);
+    clipAngle = computeViewAngle(dataPosition, dataPosition + alignDir);
 
     axisAngle += (sin(axisAngle) < 0.0) ? PI : 0.0;
     clipAngle += (sin(clipAngle) < 0.0) ? PI : 0.0;
 
-    float flip = (dot(vec2(cos(axisAngle), sin(axisAngle)),
+    flip = (dot(vec2(cos(axisAngle), sin(axisAngle)),
                       vec2(sin(clipAngle),-cos(clipAngle))) > 0.0) ? 1.0 : 0.0;
 
     beta += applyAlignOption(clipAngle, flip * PI);
