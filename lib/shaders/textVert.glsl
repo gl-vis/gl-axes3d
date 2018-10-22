@@ -27,6 +27,7 @@ const float ONE_AND_HALF_PI = 1.5 * PI;
 
 int option = int(floor(alignOpt.x + 0.001));
 float hv_ratio =       alignOpt.y;
+bool enableAlign =    (alignOpt.z != 0.0);
 
 float mod_angle(float a) {
   return mod(a, PI);
@@ -83,8 +84,9 @@ float applyAlignOption(float rawAngle, float delta) {
                     rawAngle;                // otherwise return back raw input angle
 }
 
-bool enableAlign = (alignDir.x != 0.0) || (alignDir.y != 0.0) || (alignDir.z != 0.0);
-bool isAxisTitle = (    axis.x == 0.0) && (    axis.y == 0.0) && (    axis.z == 0.0);
+bool isAxisTitle = (axis.x == 0.0) &&
+                   (axis.y == 0.0) &&
+                   (axis.z == 0.0);
 
 void main() {
   //Compute world offset
@@ -96,7 +98,7 @@ void main() {
   float axisAngle;
   float clipAngle;
   float flip;
-  
+
   if (enableAlign) {
     axisAngle = (isAxisTitle) ? HALF_PI :
                       computeViewAngle(dataPosition, dataPosition + axis);
@@ -106,7 +108,7 @@ void main() {
     clipAngle += (sin(clipAngle) < 0.0) ? PI : 0.0;
 
     flip = (dot(vec2(cos(axisAngle), sin(axisAngle)),
-                      vec2(sin(clipAngle),-cos(clipAngle))) > 0.0) ? 1.0 : 0.0;
+                vec2(sin(clipAngle),-cos(clipAngle))) > 0.0) ? 1.0 : 0.0;
 
     beta += applyAlignOption(clipAngle, flip * PI);
   }

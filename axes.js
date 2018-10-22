@@ -317,6 +317,7 @@ proto.isTransparent = function() {
 
 proto.drawTransparent = function(params) {}
 
+var ALIGN_OPTION_AUTO = 0 // i.e. as defined in the shader the text would rotate to stay upwards range: [-90,90]
 
 var PRIMAL_MINOR  = [0,0,0]
 var MIRROR_MINOR  = [0,0,0]
@@ -468,10 +469,11 @@ proto.draw = function(params) {
 
   var hv_ratio = 0.5 // can have an effect on the ratio between horizontals and verticals when using option 2
 
+  var enableAlign
   var alignDir
 
   function alignTo(i) {
-    alignDir = [0,0,0];
+    alignDir = [0,0,0]
     alignDir[i] = 1
   }
 
@@ -521,8 +523,10 @@ proto.draw = function(params) {
         this._tickAlign[i] = -1
       }
 
-      alignOpt = [this._tickAlign[i], hv_ratio, 0.0]
-      if(alignOpt[0] === 'auto') alignOpt[0] = 1
+      enableAlign = 1;
+
+      alignOpt = [this._tickAlign[i], hv_ratio, enableAlign]
+      if(alignOpt[0] === 'auto') alignOpt[0] = ALIGN_OPTION_AUTO
       else alignOpt[0] = parseInt('' + alignOpt[0])
 
       alignDir = [0,0,0]
@@ -548,14 +552,16 @@ proto.draw = function(params) {
     //Draw labels
     if(this.labelEnable[i]) {
 
-      alignOpt = [this._labelAlign[i], hv_ratio, 0.0]
-      if(alignOpt[0] === 'auto') alignOpt[0] = 1
-      else alignOpt[0] = parseInt('' + alignOpt[0])
-
-      var alignDir = [0,0,0]
+      enableAlign = 0
+      alignDir = [0,0,0]
       if(this.labels[i].length > 4) { // for large label axis enable alignDir to axis
         alignTo(i)
+        enableAlign = 1
       }
+
+      alignOpt = [this._labelAlign[i], hv_ratio, enableAlign]
+      if(alignOpt[0] === 'auto') alignOpt[0] = ALIGN_OPTION_AUTO
+      else alignOpt[0] = parseInt('' + alignOpt[0])
 
       //Add label padding
       for(var j=0; j<3; ++j) {
