@@ -10,24 +10,41 @@ vec3 project(vec3 p) {
   return pp.xyz / max(pp.w, 0.0001);
 }
 
+float computeViewAngle(vec3 a, vec3 b) {
+  vec3 A = project(a);
+  vec3 B = project(b);
+
+  return atan(
+    (B.y - A.y) * resolution.y,
+    (B.x - A.x) * resolution.x
+  );
+}
+
 const float PI = 3.141592;
 const float TWO_PI = 2.0 * PI;
 const float HALF_PI = 0.5 * PI;
 const float ONE_AND_HALF_PI = 1.5 * PI;
 
 int option = int(floor(alignOpt.x + 0.001));
-float up_tolerance =   alignOpt.y;
-float hv_ratio =       alignOpt.z;
+float hv_ratio =       alignOpt.y;
+bool enableAlign =    (alignOpt.z != 0.0);
 
-float positive_angle(float a) {
-  if (a < 0.0) return a + TWO_PI;
-  return a;
+float mod_angle(float a) {
+  return mod(a, PI);
 }
 
-float look_upwards(float a, float tolerance) {
+float positive_angle(float a) {
+  return mod_angle((a < 0.0) ?
+    a + TWO_PI :
+    a
+  );
+}
+
+float look_upwards(float a) {
   float b = positive_angle(a);
-  if ((b > HALF_PI + tolerance) && (b <= ONE_AND_HALF_PI + tolerance)) return b - PI;
-  return b;
+  return ((b > HALF_PI) && (b <= ONE_AND_HALF_PI)) ?
+    b - PI :
+    b;
 }
 
 float look_horizontal_or_vertical(float a, float ratio) {
@@ -37,11 +54,13 @@ float look_horizontal_or_vertical(float a, float ratio) {
   // likely be more horizontal than vertical.
 
   float b = positive_angle(a);
-       if (b < (      ratio) * HALF_PI) return 0.0;
-  else if (b < (2.0 - ratio) * HALF_PI) return -HALF_PI;
-  else if (b < (2.0 + ratio) * HALF_PI) return 0.0;
-  else if (b < (4.0 - ratio) * HALF_PI) return HALF_PI;
-  return 0.0;
+
+  return
+    (b < (      ratio) * HALF_PI) ? 0.0 :
+    (b < (2.0 - ratio) * HALF_PI) ? -HALF_PI :
+    (b < (2.0 + ratio) * HALF_PI) ? 0.0 :
+    (b < (4.0 - ratio) * HALF_PI) ? HALF_PI :
+                                    0.0;
 }
 
 float roundTo(float a, float b) {
@@ -52,59 +71,54 @@ float look_round_n_directions(float a, int n) {
   float b = positive_angle(a);
   float div = TWO_PI / float(n);
   float c = roundTo(b, div);
-  return look_upwards(c, up_tolerance);
+  return look_upwards(c);
 }
 
-float applyAlignOption(float rawAngle) {
-
-  if (option == -1) {
-    // useful for backward compatibility, all texts remains horizontal
-    return 0.0;
-  } else if (option == 0) {
-    // use the raw angle as calculated by atan
-    return rawAngle;
-  } else if (option == 1) {
-    // option 1: use free angle, but flip when reversed
-    return look_upwards(rawAngle, up_tolerance);
-  } else if (option == 2) {
-    // option 2: horizontal or vertical
-    return look_horizontal_or_vertical(rawAngle, hv_ratio);
-  }
-
-  // option 3-n: round to n directions
-  return look_round_n_directions(rawAngle, option);
+float applyAlignOption(float rawAngle, float delta) {
+  return
+    (option >  2) ? look_round_n_directions(rawAngle + delta, option) :       // option 3-n: round to n directions
+    (option == 2) ? look_horizontal_or_vertical(rawAngle + delta, hv_ratio) : // horizontal or vertical
+    (option == 1) ? rawAngle + delta :       // use free angle, and flip to align with one direction of the axis
+    (option == 0) ? look_upwards(rawAngle) : // use free angle, and stay upwards
+    (option ==-1) ? 0.0 :                    // useful for backward compatibility, all texts remains horizontal
+                    rawAngle;                // otherwise return back raw input angle
 }
 
-bool enableAlign = (alignDir.x != 0.0) || (alignDir.y != 0.0) || (alignDir.z != 0.0);
+bool isAxisTitle = (axis.x == 0.0) &&
+                   (axis.y == 0.0) &&
+                   (axis.z == 0.0);
 
 void main() {
-
   //Compute world offset
   float axisDistance = position.z;
   vec3 dataPosition = axisDistance * axis + offset;
 
-  float clipAngle = angle; // i.e. user defined attributes for each tick
+  float beta = angle; // i.e. user defined attributes for each tick
+
+  float axisAngle;
+  float clipAngle;
+  float flip;
 
   if (enableAlign) {
-    vec3 startPoint = project(dataPosition);
-    vec3 endPoint   = project(dataPosition + alignDir);
+    axisAngle = (isAxisTitle) ? HALF_PI :
+                      computeViewAngle(dataPosition, dataPosition + axis);
+    clipAngle = computeViewAngle(dataPosition, dataPosition + alignDir);
 
-    if (endPoint.z < 0.0) endPoint = project(dataPosition - alignDir);
+    axisAngle += (sin(axisAngle) < 0.0) ? PI : 0.0;
+    clipAngle += (sin(clipAngle) < 0.0) ? PI : 0.0;
 
-    clipAngle += applyAlignOption(
-      atan(
-        (endPoint.y - startPoint.y) * resolution.y,
-        (endPoint.x - startPoint.x) * resolution.x
-      )
-    );
+    flip = (dot(vec2(cos(axisAngle), sin(axisAngle)),
+                vec2(sin(clipAngle),-cos(clipAngle))) > 0.0) ? 1.0 : 0.0;
+
+    beta += applyAlignOption(clipAngle, flip * PI);
   }
 
   //Compute plane offset
   vec2 planeCoord = position.xy * pixelScale;
 
   mat2 planeXform = scale * mat2(
-     cos(clipAngle), sin(clipAngle),
-    -sin(clipAngle), cos(clipAngle)
+     cos(beta), sin(beta),
+    -sin(beta), cos(beta)
   );
 
   vec2 viewOffset = 2.0 * planeXform * planeCoord / resolution;
