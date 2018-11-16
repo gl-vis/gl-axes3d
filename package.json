@@ -19,7 +19,7 @@
     "glslify": "^6.1.0",
     "robust-orientation": "^1.1.3",
     "split-polygon": "^1.0.0",
-    "vectorize-text": "git://github.com/archmoj/vectorize-text.git#8c78af829e90688c6a752821ec171c0082be4c10"
+    "vectorize-text": "git://github.com/archmoj/vectorize-text.git#6fe3635932eb8835f2934756798be2d349e2089e"
   },
   "devDependencies": {
     "game-shell-orbit-camera": "^1.0.0",
