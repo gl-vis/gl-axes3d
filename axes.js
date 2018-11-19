@@ -49,8 +49,8 @@ function Axes(gl) {
   this.labelEnable    = [ true, true, true ]
   this.labelFont      = 'sans-serif'
   this.labelSize      = [ 20, 20, 20 ]
-  this._labelAngle     = [ 0, 0, 0 ]
-  this._labelAlign     = [ 'auto', 'auto', 'auto' ]
+  this.labelAngle     = [ 0, 0, 0 ]
+  this.labelAlign     = [ 'auto', 'auto', 'auto' ]
   this.labelColor     = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
   this.labelPad       = [ 10, 10, 10 ]
 
@@ -559,7 +559,7 @@ proto.draw = function(params) {
         enableAlign = 1
       }
 
-      alignOpt = [this._labelAlign[i], hv_ratio, enableAlign]
+      alignOpt = [this.labelAlign[i], hv_ratio, enableAlign]
       if(alignOpt[0] === 'auto') alignOpt[0] = ALIGN_OPTION_AUTO
       else alignOpt[0] = parseInt('' + alignOpt[0])
 
@@ -573,7 +573,7 @@ proto.draw = function(params) {
       this._text.drawLabel(
         i,
         this.labelSize[i],
-        this._labelAngle[i],
+        this.labelAngle[i],
         offset,
         this.labelColor[i],
         [0,0,0],
