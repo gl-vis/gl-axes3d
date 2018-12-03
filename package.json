@@ -1,6 +1,6 @@
 {
   "name": "gl-axes3d",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "3D axes for WebGL",
   "main": "axes.js",
   "directories": {
