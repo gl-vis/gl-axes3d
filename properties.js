@@ -114,7 +114,7 @@ i_loop:
           poly.push(x.slice())
         }
       }
-      for(var j=0; j<frustum.length; ++j) {
+      for(var j=4; j===4; ++j) { // Note: using only near plane here.
         if(poly.length === 0) {
           continue i_loop
         }
