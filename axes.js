@@ -36,7 +36,7 @@ function Axes(gl) {
   this.tickFont       = [ 'sans-serif', 'sans-serif', 'sans-serif' ]
   this.tickSize       = [ 12, 12, 12 ]
   this.tickAngle      = [ 0, 0, 0 ]
-  this._tickAlign      = [ 'auto', 'auto', 'auto' ]
+  this.tickAlign      = [ 'auto', 'auto', 'auto' ]
   this.tickColor      = [ [0,0,0,1], [0,0,0,1], [0,0,0,1] ]
   this.tickPad        = [ 10, 10, 10 ]
 
@@ -304,7 +304,8 @@ var CUBE_ENABLE = [0,0,0]
 var DEFAULT_PARAMS = {
   model:      identity,
   view:       identity,
-  projection: identity
+  projection: identity,
+  ortho:      false
 }
 
 proto.isOpaque = function() {
@@ -333,9 +334,10 @@ proto.draw = function(params) {
   var view        = params.view || identity
   var projection  = params.projection || identity
   var bounds      = this.bounds
+  var ortho       = params.ortho || false
 
   //Unpack axis info
-  var cubeParams  = getCubeProperties(model, view, projection, bounds)
+  var cubeParams  = getCubeProperties(model, view, projection, bounds, ortho)
   var cubeEdges   = cubeParams.cubeEdges
   var cubeAxis    = cubeParams.axis
 
@@ -436,12 +438,13 @@ proto.draw = function(params) {
     var primalMinor = copyVec3(PRIMAL_MINOR, lineOffset[i].primalMinor)
     var mirrorMinor = copyVec3(MIRROR_MINOR, lineOffset[i].mirrorMinor)
     var tickLength  = this.lineTickLength
-    var op = 0
     for(var j=0; j<3; ++j) {
       var scaleFactor = pixelScaleF / model[5*j]
       primalMinor[j] *= tickLength[j] * scaleFactor
       mirrorMinor[j] *= tickLength[j] * scaleFactor
     }
+
+
 
     //Draw axis line ticks
     if(this.lineTickEnable[i]) {
@@ -518,14 +521,14 @@ proto.draw = function(params) {
 
       if(this.tickAngle[i] === -3600) {
         this.tickAngle[i] = 0
-        this._tickAlign[i] = 'auto'
+        this.tickAlign[i] = 'auto'
       } else {
-        this._tickAlign[i] = -1
+        this.tickAlign[i] = -1
       }
 
       enableAlign = 1;
 
-      alignOpt = [this._tickAlign[i], hv_ratio, enableAlign]
+      alignOpt = [this.tickAlign[i], hv_ratio, enableAlign]
       if(alignOpt[0] === 'auto') alignOpt[0] = ALIGN_OPTION_AUTO
       else alignOpt[0] = parseInt('' + alignOpt[0])
 
