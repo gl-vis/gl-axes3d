@@ -68,9 +68,9 @@ function axesProperties(axes, camera, width, height, params) {
   var model       = camera.model || identity
   var view        = camera.view || identity
   var projection  = camera.projection || identity
-  var ortho       = camera.ortho || false
+  var isOrtho     = camera._ortho || false
   var bounds      = axes.bounds
-  var params      = params || cubeParams(model, view, projection, bounds, ortho)
+  var params      = params || cubeParams(model, view, projection, bounds, isOrtho)
   var axis        = params.axis
 
   m4mul(mvp, view, model)
@@ -115,8 +115,8 @@ i_loop:
         }
       }
 
-      var Q = (ortho) ? 5 : 4
-      for(var j=Q; j===Q; ++j) { // Note: using only near plane here (& for ortho we use the far).
+      var Q = (isOrtho) ? 5 : 4
+      for(var j=Q; j===Q; ++j) { // Note: using only near plane here (& for orthographic projection we use the far).
         if(poly.length === 0) {
           continue i_loop
         }

@@ -305,7 +305,7 @@ var DEFAULT_PARAMS = {
   model:      identity,
   view:       identity,
   projection: identity,
-  ortho:      false
+  _ortho:      false
 }
 
 proto.isOpaque = function() {
@@ -334,10 +334,10 @@ proto.draw = function(params) {
   var view        = params.view || identity
   var projection  = params.projection || identity
   var bounds      = this.bounds
-  var ortho       = params.ortho || false
+  var isOrtho     = params._ortho || false
 
   //Unpack axis info
-  var cubeParams  = getCubeProperties(model, view, projection, bounds, ortho)
+  var cubeParams  = getCubeProperties(model, view, projection, bounds, isOrtho)
   var cubeEdges   = cubeParams.cubeEdges
   var cubeAxis    = cubeParams.axis
 
