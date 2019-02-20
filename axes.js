@@ -566,9 +566,10 @@ proto.draw = function(params) {
       if(alignOpt[0] === 'auto') alignOpt[0] = ALIGN_OPTION_AUTO
       else alignOpt[0] = parseInt('' + alignOpt[0])
 
+      var orthoFix = (isOrtho) ? 2 : 1 // double up padding for orthographic labels
       //Add label padding
       for(var j=0; j<3; ++j) {
-        offset[j] += pixelScaleF * minor[j] * this.labelPad[j] / model[5*j]
+        offset[j] += orthoFix * pixelScaleF * minor[j] * this.labelPad[j] / model[5*j]
       }
       offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
 
