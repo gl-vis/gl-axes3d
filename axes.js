@@ -346,7 +346,8 @@ proto.draw = function(params) {
   var cz = view[14]
   var cw = view[15]
 
-  var pixelScaleF = this.pixelRatio * (projection[3]*cx + projection[7]*cy + projection[11]*cz + projection[15]*cw) / gl.drawingBufferHeight
+  var orthoFix = (isOrtho) ? 2 : 1 // double up padding for orthographic ticks & labels
+  var pixelScaleF = orthoFix * this.pixelRatio * (projection[3]*cx + projection[7]*cy + projection[11]*cz + projection[15]*cw) / gl.drawingBufferHeight
 
   for(var i=0; i<3; ++i) {
     this.lastCubeProps.cubeEdges[i] = cubeEdges[i]
@@ -566,10 +567,9 @@ proto.draw = function(params) {
       if(alignOpt[0] === 'auto') alignOpt[0] = ALIGN_OPTION_AUTO
       else alignOpt[0] = parseInt('' + alignOpt[0])
 
-      var orthoFix = (isOrtho) ? 2 : 1 // double up padding for orthographic labels
       //Add label padding
       for(var j=0; j<3; ++j) {
-        offset[j] += orthoFix * pixelScaleF * minor[j] * this.labelPad[j] / model[5*j]
+        offset[j] += pixelScaleF * minor[j] * this.labelPad[j] / model[5*j]
       }
       offset[i] += 0.5 * (bounds[0][i] + bounds[1][i])
 
