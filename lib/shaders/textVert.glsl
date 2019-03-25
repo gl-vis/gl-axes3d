@@ -1,3 +1,5 @@
+precision highp float;
+
 attribute vec3 position;
 
 uniform mat4 model, view, projection;
