@@ -24,8 +24,8 @@
   "devDependencies": {
     "chttps": "^1.0.6",
     "game-shell-orbit-camera": "^1.0.0",
-    "gl-matrix": "^3.0.0",
-    "gl-mesh3d": "^2.0.6",
+    "gl-matrix": "^3.3.0",
+    "gl-mesh3d": "^2.3.0",
     "gl-now": "^1.4.0",
     "isosurface": "^1.0.0"
   },
