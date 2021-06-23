@@ -19,7 +19,7 @@ void main() {
     vec3 minRange = min(bounds[0], bounds[1]);
     vec3 maxRange = max(bounds[0], bounds[1]);
     vec3 nPosition = mix(minRange, maxRange, 0.5 * (position + 1.0));
-    gl_Position = projection * view * model * vec4(nPosition, 1.0);
+    gl_Position = projection * (view * (model * vec4(nPosition, 1.0)));
   } else {
     gl_Position = vec4(0,0,0,0);
   }

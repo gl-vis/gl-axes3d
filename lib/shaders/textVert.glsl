@@ -8,7 +8,7 @@ uniform float scale, angle, pixelScale;
 uniform vec2 resolution;
 
 vec3 project(vec3 p) {
-  vec4 pp = projection * view * model * vec4(p, 1.0);
+  vec4 pp = projection * (view * (model * vec4(p, 1.0)));
   return pp.xyz / max(pp.w, 0.0001);
 }
 
