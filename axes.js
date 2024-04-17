@@ -36,7 +36,6 @@ function Axes(gl) {
   this.tickFont       = [ 'sans-serif', 'sans-serif', 'sans-serif' ]
   this.tickFontStyle   = [ 'normal', 'normal', 'normal' ]
   this.tickFontWeight  = [ 'normal', 'normal', 'normal' ]
-  this.tickFontStretch = [ 'normal', 'normal', 'normal' ]
   this.tickFontVariant = [ 'normal', 'normal', 'normal' ]
   this.tickSize       = [ 12, 12, 12 ]
   this.tickAngle      = [ 0, 0, 0 ]
@@ -54,7 +53,6 @@ function Axes(gl) {
   this.labelFont      = [ 'sans-serif', 'sans-serif', 'sans-serif' ]
   this.labelFontStyle   = [ 'normal', 'normal', 'normal' ]
   this.labelFontWeight  = [ 'normal', 'normal', 'normal' ]
-  this.labelFontStretch = [ 'normal', 'normal', 'normal' ]
   this.labelFontVariant = [ 'normal', 'normal', 'normal' ]
   this.labelSize      = [ 20, 20, 20 ]
   this.labelAngle     = [ 0, 0, 0 ]
@@ -197,7 +195,6 @@ i_loop:
   if(STRING('tickFont')) ticksUpdate = true
   if(STRING('tickFontStyle')) ticksUpdate = true
   if(STRING('tickFontWeight')) ticksUpdate = true
-  if(STRING('tickFontStretch')) ticksUpdate = true
   if(STRING('tickFontVariant')) ticksUpdate = true
 
   NUMBER('tickSize')
@@ -211,7 +208,6 @@ i_loop:
   if(STRING('labelFont')) labelUpdate = true
   if(STRING('labelFontStyle')) labelUpdate = true
   if(STRING('labelFontWeight')) labelUpdate = true
-  if(STRING('labelFontStretch')) labelUpdate = true
   if(STRING('labelFontVariant')) labelUpdate = true
 
   BOOLEAN('labelEnable')
@@ -251,21 +247,18 @@ i_loop:
       family: this.labelFont[0],
       style: this.labelFontStyle[0],
       weight: this.labelFontWeight[0],
-      stretch: this.labelFontStretch[0],
       variant: this.labelFontVariant[0],
     },
     {
       family: this.labelFont[1],
       style: this.labelFontStyle[1],
       weight: this.labelFontWeight[1],
-      stretch: this.labelFontStretch[1],
       variant: this.labelFontVariant[1],
     },
     {
       family: this.labelFont[2],
       style: this.labelFontStyle[2],
       weight: this.labelFontWeight[2],
-      stretch: this.labelFontStretch[2],
       variant: this.labelFontVariant[2],
     }
   ]
@@ -275,21 +268,18 @@ i_loop:
       family: this.tickFont[0],
       style: this.tickFontStyle[0],
       weight: this.tickFontWeight[0],
-      stretch: this.tickFontStretch[0],
       variant: this.tickFontVariant[0],
     },
     {
       family: this.tickFont[1],
       style: this.tickFontStyle[1],
       weight: this.tickFontWeight[1],
-      stretch: this.tickFontStretch[1],
       variant: this.tickFontVariant[1],
     },
     {
       family: this.tickFont[2],
       style: this.tickFontStyle[2],
       weight: this.tickFontWeight[2],
-      stretch: this.tickFontStretch[2],
       variant: this.tickFontVariant[2],
     }
   ]
